@@ -1,6 +1,6 @@
 from flask import Blueprint, request, redirect, current_app as app
-from .service import register_user, login_user, verify_user_email
-from .schema import RegisterSchema, LoginSchema
+from .service import register_user, login_user, verify_user_email, forgot_password_service, reset_password_service
+from .schema import RegisterSchema, LoginSchema, ForgotPasswordSchema, ResetPasswordSchema
 from marshmallow import ValidationError
 from app.extensions import limiter
 from flask_jwt_extended import unset_jwt_cookies, jwt_required, get_jwt_identity
@@ -39,3 +39,14 @@ def logout():
     response, code = success_response("Logout success", code=200)
     unset_jwt_cookies(response)
     return response, code
+
+@auth_bp.route('/forgot-password', methods=['POST'])
+def forgot_password():
+    data = ForgotPasswordSchema().load(request.json)
+    return forgot_password_service(data)
+
+
+@auth_bp.route('/reset-password', methods=['POST'])
+def reset_password():
+    data = ResetPasswordSchema().load(request.json)
+    return reset_password_service(data)

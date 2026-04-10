@@ -1,11 +1,12 @@
 from flask import jsonify
+import time
 from app.models.auth.user import User
 from app.models.auth.role import Role
 from app.extensions import db
 from werkzeug.security import generate_password_hash, check_password_hash
 import secrets
 from flask_jwt_extended import create_access_token, set_access_cookies, get_csrf_token
-from app.utils.email import send_verification_email
+from app.utils.email import send_verification_email, send_reset_password_email
 from app.utils.responses import success_response, error_response
 
 def register_user(data):
@@ -68,3 +69,31 @@ def login_user(data):
 
     return response, code
 
+def forgot_password_service(data):
+    user = User.query.filter_by(email=data['email']).first()
+
+    if not user:
+        time.sleep(1)
+        return success_response("Link reset has been sent", code=200)
+
+    token = secrets.token_urlsafe(32)
+
+    user.reset_token = token
+    db.session.commit()
+
+    send_reset_password_email(user.email, token)
+
+    return success_response("Link reset has been sent", code=200)
+
+def reset_password_service(data):
+    user = User.query.filter_by(reset_token=data['token']).first()
+
+    if not user:
+        return error_response("Token is invalid or expired", code=400)
+
+    user.password = generate_password_hash(data['password'])
+    user.reset_token = None
+
+    db.session.commit()
+
+    return success_response("Password has been reset successfully", code=200)

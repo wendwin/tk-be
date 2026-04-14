@@ -60,7 +60,13 @@ def login_user(data):
         additional_claims={"role": user.role.name}
     )
 
-    response, code = success_response("Login success", code=200)
+    response, code = success_response(
+        "Login success", 
+        data={
+            "role": user.role.name
+        },
+        code=200
+    )
 
     set_access_cookies(response, token)
 

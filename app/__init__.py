@@ -15,7 +15,9 @@ def create_app():
     mail.init_app(app)
     limiter.init_app(app)
     init_error_handlers(app)
-    CORS(app)
+    CORS(app,
+          supports_credentials=True,
+          origins=app.config["FRONTEND_URL"])
 
     # app.route('/')(lambda: 'running')
 

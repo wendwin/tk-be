@@ -17,7 +17,9 @@ def create_app():
     init_error_handlers(app)
     CORS(app,
           supports_credentials=True,
-          origins=app.config["FRONTEND_URL"])
+          origins=app.config["FRONTEND_URL"],
+          expose_headers=["X-CSRF-TOKEN"]  
+        )
 
     # app.route('/')(lambda: 'running')
 

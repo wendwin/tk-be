@@ -10,6 +10,7 @@ class User(db.Model):
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
     is_verified = db.Column(db.Boolean, default=False)
     verification_token = db.Column(db.String(255), nullable=True)
+    reset_token = db.Column(db.String(255), nullable=True)
 
     created_at = db.Column(
         db.DateTime(timezone=True),

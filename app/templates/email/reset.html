@@ -1,0 +1,51 @@
+<html>
+  <body
+    style="
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      padding: 20px;
+    "
+  >
+    <div
+      style="
+        max-width: 500px;
+        margin: auto;
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+      "
+    >
+      <h2 style="color: #333">Reset Password</h2>
+
+      <p>Halo,</p>
+
+      <p>Silakan reset password kamu melalui link berikut:</p>
+
+      <div style="text-align: center; margin: 20px 0">
+        <a
+          href="{{ reset_link_url }}"
+          style="
+            background-color: #4caf50;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+          "
+        >
+          Reset Password
+        </a>
+      </div>
+
+      <p>Jika tombol tidak bekerja, klik link berikut:</p>
+      <p style="color: blue">
+        <a href="{{ reset_link_url }}">Klik di sini, untuk reset password</a>
+      </p>
+
+      <p style="color: gray; font-size: 12px">
+        Abaikan email ini jika kamu tidak merasa mendaftar.
+      </p>
+
+      <p>Tim PMB</p>
+    </div>
+  </body>
+</html>

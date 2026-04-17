@@ -95,7 +95,22 @@ class PendaftaranSchema(Schema):
     program = fields.Str(
         validate=validate.OneOf(['reguler', 'halfday', 'fullday'])
     )
-    
+
     id_tahun = fields.Int(required=True)
     peserta = fields.Nested(PesertaSchema)
     dokumen = fields.Nested(DokumenSchema, many=True)
+
+class PendaftaranListSchema(Schema):
+    id = fields.Int()
+    no_pendaftaran = fields.Str()
+    tanggal_daftar = fields.DateTime()
+
+    jenis = fields.Str()
+    program = fields.Str()
+    status = fields.Str()
+    status_pembayaran = fields.Str()
+
+    nama_lengkap = fields.Method("get_nama")
+
+    def get_nama(self, obj):
+        return obj.peserta.nama_lengkap if obj.peserta else None

@@ -9,33 +9,14 @@ def generate_no():
     return str(int(last.no_pendaftaran) + 1).zfill(3)
 
 def get_all(page=1, per_page=10, search=None):
-    query = Pendaftaran.query
+    query = Pendaftaran.query.join(PesertaDidik)
 
-    # eager loading
-    query = query.options(
-        joinedload(Pendaftaran.peserta)
-        .joinedload(PesertaDidik.kesehatan),
-
-        joinedload(Pendaftaran.peserta)
-        .joinedload(PesertaDidik.orang_tua),
-
-        joinedload(Pendaftaran.peserta)
-        .joinedload(PesertaDidik.alamat_domisili),
-
-        joinedload(Pendaftaran.peserta)
-        .joinedload(PesertaDidik.alamat_kk)
-    )
-
-    # filter
     if search:
-        query = query.join(PesertaDidik).filter(
+        query = query.filter(
             PesertaDidik.nama_lengkap.ilike(f"%{search}%")
         )
 
-    # pagination
-    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
-
-    return pagination
+    return query.paginate(page=page, per_page=per_page, error_out=False)
 
 def create(data, user_id):
     no = generate_no()

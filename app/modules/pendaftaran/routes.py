@@ -2,7 +2,7 @@ from flask_jwt_extended import get_jwt_identity
 
 from app.extensions import db
 from flask import Blueprint, request, redirect
-from .schema import PendaftaranSchema
+from .schema import PendaftaranSchema, PendaftaranListSchema
 from .service import get_all, create, get_by_id
 from app.utils.decorators import role_required
 from app.utils.responses import success_response, error_response
@@ -19,7 +19,7 @@ def index():
 
     pagination = get_all(page, per_page, search)
 
-    schema = PendaftaranSchema(many=True)
+    schema = PendaftaranListSchema(many=True)
     data = schema.dump(pagination.items)
 
     return success_response(

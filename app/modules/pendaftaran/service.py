@@ -2,6 +2,17 @@ from app.extensions import db
 from app.models.pendaftaran import *
 from sqlalchemy.orm import joinedload
 
+import os
+from werkzeug.utils import secure_filename
+from datetime import datetime
+
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+UPLOAD_FOLDER = 'uploads/pembayaran'
+MAX_FILE_SIZE_PAYMENT = 2 * 1024 * 1024  # 2MB
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 def generate_no():
     last = Pendaftaran.query.order_by(Pendaftaran.id.desc()).first()
     if not last:
@@ -127,3 +138,54 @@ def get_by_id(id):
 
         joinedload(Pendaftaran.dokumen)
     ).filter_by(id=id).first()
+
+def upload_pembayaran_service(pendaftaran_id, user_id, file):
+    pendaftaran = Pendaftaran.query.filter_by(
+        id=pendaftaran_id,
+        user_id=user_id
+    ).first()
+
+    if not pendaftaran:
+        raise Exception("Data tidak ditemukan atau bukan milik user")
+
+    # validasi ekstensi
+    if not allowed_file(file.filename):
+        raise Exception("Format file tidak diizinkan (png, jpg, jpeg)")
+
+    # validasi ukuran file
+    file.seek(0, os.SEEK_END)
+    file_length = file.tell()
+
+    if file_length > MAX_FILE_SIZE_PAYMENT:
+        raise Exception("Ukuran file maksimal 2MB")
+
+    file.seek(0)
+
+    # generate nama file
+    filename = secure_filename(file.filename)
+    timestamp = datetime.utcnow().strftime('%Y%m%d%H%M%S')
+    filename = f"{timestamp}_{filename}"
+
+    # simpan file
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+    filepath = os.path.join(UPLOAD_FOLDER, filename)
+    file.save(filepath)
+
+    file_url = f"/uploads/pembayaran/{filename}"
+
+    dokumen = Dokumen(
+        id_pendaftaran=pendaftaran.id,
+        jenis_dokumen="bukti_pembayaran",
+        file_path=file_url
+    )
+    db.session.add(dokumen)
+
+    # update status pembayaran
+    pendaftaran.status_pembayaran = "pending"
+
+    db.session.commit()
+
+    return {
+        "file_path": filepath,
+        "status_pembayaran": pendaftaran.status_pembayaran
+    }

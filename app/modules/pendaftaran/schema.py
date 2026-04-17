@@ -62,6 +62,10 @@ class PesertaSchema(Schema):
     jumlah_saudara = fields.Int()
     bahasa = fields.Str()
 
+    status = fields.Str(
+        validate=validate.OneOf(['calon', 'aktif', 'nonaktif'])
+    )
+
     alamat_domisili = fields.Nested(AlamatSchema)
     alamat_kk = fields.Nested(AlamatSchema)
 
@@ -75,12 +79,23 @@ class DokumenSchema(Schema):
     uploaded_at = fields.DateTime()
 
 class PendaftaranSchema(Schema):
-    id = fields.Int()
-    no_pendaftaran = fields.Str()
-    tanggal_daftar = fields.DateTime()
-
-    jenis_pendaftaran = fields.Str()
-    program = fields.Str()
-
+    id = fields.Int(dump_only=True)
+    user_id = fields.Int(dump_only=True)
+    no_pendaftaran = fields.Str(dump_only=True)
+    tanggal_daftar = fields.DateTime(dump_only=True)
+    status = fields.Str(
+        validate=validate.OneOf(['pending', 'verified', 'accepted', 'rejected'])
+    )
+    status_pembayaran = fields.Str(
+        validate=validate.OneOf(['unpaid', 'pending', 'paid', 'failed'])
+    )
+    jenis = fields.Str(
+        validate=validate.OneOf(['tk', 'kb'])
+    )
+    program = fields.Str(
+        validate=validate.OneOf(['reguler', 'halfday', 'fullday'])
+    )
+    
+    id_tahun = fields.Int(required=True)
     peserta = fields.Nested(PesertaSchema)
     dokumen = fields.Nested(DokumenSchema, many=True)

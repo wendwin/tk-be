@@ -5,7 +5,10 @@ class Pendaftaran(db.Model):
     __tablename__ = 'pendaftaran'
 
     id = db.Column(db.Integer, primary_key=True)
-    no_pendaftaran = db.Column(db.String(3), unique=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    no_pendaftaran = db.Column(db.String(10), unique=True)
+    status = db.Column(db.Enum('pending', 'verified', 'accepted', 'rejected', name='status_pendaftaran_enum'),default='pending')
+    status_pembayaran = db.Column(db.Enum('unpaid', 'pending', 'paid', 'failed', name='status_pembayaran_enum'), default='unpaid')
     tanggal_daftar = db.Column(db.DateTime, default=datetime.utcnow)
     jenis = db.Column(db.Enum('tk', 'kb', name='jenis_enum'))
     program = db.Column(db.Enum('reguler', 'halfday', 'fullday', name='program_enum'))

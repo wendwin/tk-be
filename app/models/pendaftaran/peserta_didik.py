@@ -10,6 +10,7 @@ class PesertaDidik(db.Model):
     id_alamat_kk = db.Column(db.Integer, db.ForeignKey('alamat.id'))
 
     nama_lengkap = db.Column(db.String(150))
+    status = db.Column(db.Enum('calon', 'aktif', 'nonaktif', name='status_peserta_enum'),default='calon')
     nama_panggilan = db.Column(db.String(100))
     tempat_lahir = db.Column(db.String(100))
     tanggal_lahir = db.Column(db.Date)
@@ -24,9 +25,9 @@ class PesertaDidik(db.Model):
     jumlah_saudara = db.Column(db.Integer)
     bahasa = db.Column(db.String(50))
 
-    kesehatan = db.relationship('KesehatanAnak', backref='peserta', uselist=False)
+    kesehatan = db.relationship('Kesehatan', backref='peserta', uselist=False)
     orang_tua = db.relationship('OrangTua', backref='peserta')
-    informasi = db.relationship('InformasiTambahan', backref='peserta', uselist=False)  
+    informasi = db.relationship('Informasi', backref='peserta', uselist=False)  
 
     alamat_domisili = db.relationship('Alamat', foreign_keys=[id_alamat_domisili])
     alamat_kk = db.relationship('Alamat', foreign_keys=[id_alamat_kk])

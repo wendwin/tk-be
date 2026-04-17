@@ -27,4 +27,8 @@ def create_app():
     from app.modules.auth.routes import auth_bp
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
 
+    # pendaftaran
+    from app.modules.pendaftaran.routes import bp_pendaftaran
+    app.register_blueprint(bp_pendaftaran, url_prefix="/api/pendaftaran")
+    
     return app

@@ -1,3 +1,5 @@
+from flask_jwt_extended import get_jwt_identity
+
 from app.extensions import db
 from flask import Blueprint, request, redirect
 from .schema import PendaftaranSchema
@@ -9,7 +11,7 @@ from app.utils.pagination import format_pagination
 bp_pendaftaran = Blueprint('pendaftaran', __name__)
 
 @bp_pendaftaran.route('', methods=['GET'])
-@role_required('admin')
+@role_required('admin', 'orang_tua',)
 def show():
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 10, type=int)
@@ -28,17 +30,18 @@ def show():
     )
 
 @bp_pendaftaran.route('', methods=['POST'])
-@role_required('orang_tua', 'admin')
+@role_required('admin', 'orang_tua')
 def store():
     try:
         data = request.get_json()
+        user_id = get_jwt_identity()
 
         schema = PendaftaranSchema()
         errors = schema.validate(data)
         if errors:
             return error_response("Validation error", errors=errors, code=422)
 
-        pendaftaran = create(data)
+        pendaftaran = create(data, user_id)
 
         return success_response(
             message="Pendaftaran berhasil dibuat",

@@ -6,18 +6,42 @@ import os
 from werkzeug.utils import secure_filename
 from datetime import datetime
 
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'pdf'}
 UPLOAD_FOLDER = 'uploads/pembayaran'
-MAX_FILE_SIZE_PAYMENT = 2 * 1024 * 1024  # 2MB
-
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
 
 def generate_no():
     last = Pendaftaran.query.order_by(Pendaftaran.id.desc()).first()
     if not last:
         return "001"
     return str(int(last.no_pendaftaran) + 1).zfill(3)
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def validate_file(file):
+    if not allowed_file(file.filename):
+        raise Exception("Format file tidak diizinkan (png, jpg, jpeg)")
+
+    file.seek(0, os.SEEK_END)
+    file_length = file.tell()
+    file.seek(0)
+
+    if file_length > MAX_FILE_SIZE:
+        raise Exception("Ukuran file maksimal 2MB")
+
+def save_file(file, subfolder):
+    base_folder = os.path.join(os.getcwd(), "uploads", subfolder)
+    os.makedirs(base_folder, exist_ok=True)
+
+    filename = secure_filename(file.filename)
+    timestamp = datetime.utcnow().strftime('%Y%m%d%H%M%S')
+    filename = f"{timestamp}_{filename}"
+
+    filepath = os.path.join(base_folder, filename)
+    file.save(filepath)
+
+    return f"/uploads/{subfolder}/{filename}"
 
 def get_all(page=1, per_page=10, search=None):
     query = Pendaftaran.query.join(PesertaDidik)
@@ -29,9 +53,8 @@ def get_all(page=1, per_page=10, search=None):
 
     return query.paginate(page=page, per_page=per_page, error_out=False)
 
-def create(data, user_id):
+def create(data, user_id, files=None):
     no = generate_no()
-
     peserta_data = data["peserta"]
 
     # pendaftaran
@@ -113,11 +136,38 @@ def create(data, user_id):
             **peserta_data["informasi"]
         )
         db.session.add(info)
+    
+    # dokumen
+    dokumen_map = {
+        "kk": "kartu_keluarga",
+        "akte": "akta_kelahiran",
+        "kia": "kia",
+        "foto": "foto"
+    }
+
+    dokumen_list = []
+
+    if files:
+        for key, jenis in dokumen_map.items():
+            file = files.get(key)
+
+            if file:
+                validate_file(file)
+                file_url = save_file(file, "dokumen")
+
+                dokumen_list.append(
+                    Dokumen(
+                        id_pendaftaran=pendaftaran.id,
+                        jenis_dokumen=jenis,
+                        file_path=file_url
+                    )
+                )
+
+    if dokumen_list:
+        db.session.add_all(dokumen_list)
 
     db.session.commit()
     return pendaftaran
-
-from sqlalchemy.orm import joinedload
 
 def get_by_id(id):
     return Pendaftaran.query.options(
@@ -147,31 +197,9 @@ def upload_pembayaran_service(pendaftaran_id, user_id, file):
 
     if not pendaftaran:
         raise Exception("Data tidak ditemukan atau bukan milik user")
-
-    # validasi ekstensi
-    if not allowed_file(file.filename):
-        raise Exception("Format file tidak diizinkan (png, jpg, jpeg)")
-
-    # validasi ukuran file
-    file.seek(0, os.SEEK_END)
-    file_length = file.tell()
-
-    if file_length > MAX_FILE_SIZE_PAYMENT:
-        raise Exception("Ukuran file maksimal 2MB")
-
-    file.seek(0)
-
-    # generate nama file
-    filename = secure_filename(file.filename)
-    timestamp = datetime.utcnow().strftime('%Y%m%d%H%M%S')
-    filename = f"{timestamp}_{filename}"
-
-    # simpan file
-    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-    filepath = os.path.join(UPLOAD_FOLDER, filename)
-    file.save(filepath)
-
-    file_url = f"/uploads/pembayaran/{filename}"
+    
+    validate_file(file)
+    file_url = save_file(file, "pembayaran")
 
     dokumen = Dokumen(
         id_pendaftaran=pendaftaran.id,
@@ -180,12 +208,11 @@ def upload_pembayaran_service(pendaftaran_id, user_id, file):
     )
     db.session.add(dokumen)
 
-    # update status pembayaran
     pendaftaran.status_pembayaran = "pending"
 
     db.session.commit()
 
     return {
-        "file_path": filepath,
+        "file_path": file_url,
         "status_pembayaran": pendaftaran.status_pembayaran
     }

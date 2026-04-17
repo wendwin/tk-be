@@ -1,7 +1,7 @@
 import os
 from flask_jwt_extended import get_jwt_identity
 from app.extensions import db
-from flask import Blueprint, request, redirect, send_from_directory
+from flask import Blueprint, request, redirect, send_from_directory, json
 from .schema import PendaftaranSchema, PendaftaranListSchema
 from .service import get_all, create, get_by_id, upload_pembayaran_service
 from app.utils.decorators import role_required
@@ -35,7 +35,8 @@ def index():
 @role_required('admin', 'orang_tua')
 def store():
     try:
-        data = request.get_json()
+        data = json.loads(request.form.get("data"))
+        files = request.files
         user_id = get_jwt_identity()
 
         schema = PendaftaranSchema()
@@ -43,7 +44,7 @@ def store():
         if errors:
             return error_response("Validation error", errors=errors, code=422)
 
-        pendaftaran = create(data, user_id)
+        pendaftaran = create(data, user_id, files)
 
         return success_response(
             message="Pendaftaran berhasil dibuat",

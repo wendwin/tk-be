@@ -3,7 +3,7 @@ from flask_jwt_extended import get_jwt_identity
 from app.extensions import db
 from flask import Blueprint, request, redirect
 from .schema import PendaftaranSchema
-from .service import get_all, create
+from .service import get_all, create, get_by_id
 from app.utils.decorators import role_required
 from app.utils.responses import success_response, error_response
 from app.utils.pagination import format_pagination
@@ -12,7 +12,7 @@ bp_pendaftaran = Blueprint('pendaftaran', __name__)
 
 @bp_pendaftaran.route('', methods=['GET'])
 @role_required('admin', 'orang_tua',)
-def show():
+def index():
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 10, type=int)
     search = request.args.get('search')
@@ -52,3 +52,14 @@ def store():
     except Exception as e:
         db.session.rollback()
         return error_response(message=str(e), code=500)
+    
+@bp_pendaftaran.route('/<int:id>', methods=['GET'])
+@role_required('admin', 'orang_tua')
+def show(id):
+    pendaftaran = get_by_id(id)
+
+    if not pendaftaran:
+        return error_response("Data tidak ditemukan", code=404)
+
+    schema = PendaftaranSchema()
+    return success_response(data=schema.dump(pendaftaran), message="Data pendaftaran berhasil diambil", code=200)

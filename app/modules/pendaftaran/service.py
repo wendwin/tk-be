@@ -124,3 +124,25 @@ def create(data, user_id):
 
     db.session.commit()
     return pendaftaran
+
+from sqlalchemy.orm import joinedload
+
+def get_by_id(id):
+    return Pendaftaran.query.options(
+        joinedload(Pendaftaran.peserta)
+            .joinedload(PesertaDidik.kesehatan),
+
+        joinedload(Pendaftaran.peserta)
+            .joinedload(PesertaDidik.orang_tua),
+
+        joinedload(Pendaftaran.peserta)
+            .joinedload(PesertaDidik.alamat_domisili),
+
+        joinedload(Pendaftaran.peserta)
+            .joinedload(PesertaDidik.alamat_kk),
+
+        joinedload(Pendaftaran.peserta)
+            .joinedload(PesertaDidik.informasi),
+
+        joinedload(Pendaftaran.dokumen)
+    ).filter_by(id=id).first()

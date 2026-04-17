@@ -1,2 +1,6 @@
-from app.models.auth.user import User
-from app.models.auth.role import Role
+# model auth
+from app.models.auth import *
+# model pendaftaran
+from app.models.pendaftaran import *
+# model akademik
+from app.models.akademik import *

@@ -5,7 +5,7 @@ from app.models.auth.role import Role
 from app.extensions import db
 from werkzeug.security import generate_password_hash, check_password_hash
 import secrets
-from flask_jwt_extended import create_access_token, set_access_cookies, get_csrf_token
+from flask_jwt_extended import create_access_token, create_refresh_token, set_access_cookies, set_refresh_cookies, get_csrf_token
 from app.utils.email import send_verification_email, send_reset_password_email
 from app.utils.responses import success_response, error_response
 
@@ -60,6 +60,8 @@ def login_user(data):
         additional_claims={"role": user.role.name}
     )
 
+    refresh_token = create_refresh_token(identity=str(user.id))
+
     response, code = success_response(
         "Login success", 
         data={
@@ -69,6 +71,7 @@ def login_user(data):
     )
 
     set_access_cookies(response, token)
+    set_refresh_cookies(response, refresh_token)
 
     csrf_token = get_csrf_token(token)
     response.headers["X-CSRF-TOKEN"] = csrf_token

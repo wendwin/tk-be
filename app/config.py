@@ -1,14 +1,21 @@
 import os, json
+from datetime import timedelta
 
 class Config:
     BASE_URL = os.getenv("BASE_URL")
     SECRET_KEY = os.getenv("SECRET_KEY")
+
     JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
     JWT_TOKEN_LOCATION = json.loads(os.getenv("JWT_TOKEN_LOCATION", '["cookies"]'))
     JWT_COOKIE_SECURE = os.getenv("JWT_COOKIE_SECURE", "False") == "True"
     JWT_COOKIE_HTTPONLY = os.getenv("JWT_COOKIE_HTTPONLY", "False") == "True"
     JWT_COOKIE_SAMESITE = os.getenv("JWT_COOKIE_SAMESITE", "Lax")
-    JWT_COOKIE_CSRF_PROTECT = os.getenv("JWT_COOKIE_CSRF_PROTECT", "False")
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(
+        minutes=int(os.getenv("JWT_ACCESS_TOKEN_EXPIRES_MINUTES", 15))
+    )
+    JWT_REFRESH_TOKEN_EXPIRES = timedelta(
+        days=int(os.getenv("JWT_REFRESH_TOKEN_EXPIRES_DAYS", 7))
+    )
 
     FRONTEND_URL = os.getenv("FRONTEND_URL")
 

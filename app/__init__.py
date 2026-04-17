@@ -17,7 +17,9 @@ def create_app():
     init_error_handlers(app)
     CORS(app,
           supports_credentials=True,
-          origins=app.config["FRONTEND_URL"])
+          origins=app.config["FRONTEND_URL"],
+          expose_headers=["X-CSRF-TOKEN"]  
+        )
 
     # app.route('/')(lambda: 'running')
 
@@ -25,4 +27,8 @@ def create_app():
     from app.modules.auth.routes import auth_bp
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
 
+    # pendaftaran
+    from app.modules.pendaftaran.routes import bp_pendaftaran
+    app.register_blueprint(bp_pendaftaran, url_prefix="/api/pendaftaran")
+    
     return app

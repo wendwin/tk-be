@@ -1,6 +1,7 @@
 from app.extensions import db
 from app.models.pendaftaran import *
 from sqlalchemy.orm import joinedload
+from app.utils.file_helper import save_file, validate_file
 
 def generate_no():
     last = Pendaftaran.query.order_by(Pendaftaran.id.desc()).first()
@@ -9,37 +10,17 @@ def generate_no():
     return str(int(last.no_pendaftaran) + 1).zfill(3)
 
 def get_all(page=1, per_page=10, search=None):
-    query = Pendaftaran.query
+    query = Pendaftaran.query.join(PesertaDidik)
 
-    # eager loading
-    query = query.options(
-        joinedload(Pendaftaran.peserta)
-        .joinedload(PesertaDidik.kesehatan),
-
-        joinedload(Pendaftaran.peserta)
-        .joinedload(PesertaDidik.orang_tua),
-
-        joinedload(Pendaftaran.peserta)
-        .joinedload(PesertaDidik.alamat_domisili),
-
-        joinedload(Pendaftaran.peserta)
-        .joinedload(PesertaDidik.alamat_kk)
-    )
-
-    # filter
     if search:
-        query = query.join(PesertaDidik).filter(
+        query = query.filter(
             PesertaDidik.nama_lengkap.ilike(f"%{search}%")
         )
 
-    # pagination
-    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+    return query.paginate(page=page, per_page=per_page, error_out=False)
 
-    return pagination
-
-def create(data, user_id):
+def create(data, user_id, files=None):
     no = generate_no()
-
     peserta_data = data["peserta"]
 
     # pendaftaran
@@ -121,6 +102,83 @@ def create(data, user_id):
             **peserta_data["informasi"]
         )
         db.session.add(info)
+    
+    # dokumen
+    dokumen_map = {
+        "kk": "kartu_keluarga",
+        "akte": "akta_kelahiran",
+        "kia": "kia",
+        "foto": "foto"
+    }
+
+    dokumen_list = []
+
+    if files:
+        for key, jenis in dokumen_map.items():
+            file = files.get(key)
+
+            if file:
+                validate_file(file)
+                file_url = save_file(file, "dokumen")
+
+                dokumen_list.append(
+                    Dokumen(
+                        id_pendaftaran=pendaftaran.id,
+                        jenis_dokumen=jenis,
+                        file_path=file_url
+                    )
+                )
+
+    if dokumen_list:
+        db.session.add_all(dokumen_list)
 
     db.session.commit()
     return pendaftaran
+
+def get_by_id(id):
+    return Pendaftaran.query.options(
+        joinedload(Pendaftaran.peserta)
+            .joinedload(PesertaDidik.kesehatan),
+
+        joinedload(Pendaftaran.peserta)
+            .joinedload(PesertaDidik.orang_tua),
+
+        joinedload(Pendaftaran.peserta)
+            .joinedload(PesertaDidik.alamat_domisili),
+
+        joinedload(Pendaftaran.peserta)
+            .joinedload(PesertaDidik.alamat_kk),
+
+        joinedload(Pendaftaran.peserta)
+            .joinedload(PesertaDidik.informasi),
+
+        joinedload(Pendaftaran.dokumen)
+    ).filter_by(id=id).first()
+
+def upload_pembayaran_service(pendaftaran_id, user_id, file):
+    pendaftaran = Pendaftaran.query.filter_by(
+        id=pendaftaran_id,
+        user_id=user_id
+    ).first()
+
+    if not pendaftaran:
+        raise Exception("Data tidak ditemukan atau bukan milik user")
+    
+    validate_file(file)
+    file_url = save_file(file, "pembayaran")
+
+    dokumen = Dokumen(
+        id_pendaftaran=pendaftaran.id,
+        jenis_dokumen="bukti_pembayaran",
+        file_path=file_url
+    )
+    db.session.add(dokumen)
+
+    pendaftaran.status_pembayaran = "pending"
+
+    db.session.commit()
+
+    return {
+        "file_path": file_url,
+        "status_pembayaran": pendaftaran.status_pembayaran
+    }

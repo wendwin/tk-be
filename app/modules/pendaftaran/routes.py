@@ -3,7 +3,7 @@ from flask_jwt_extended import get_jwt_identity
 from app.extensions import db
 from flask import Blueprint, request, redirect, send_from_directory, json
 from .schema import PendaftaranSchema, PendaftaranListSchema
-from .service import get_all, create, get_by_id, upload_pembayaran_service
+from .service import get_all, create, get_by_id, upload_berkas_service ,upload_pembayaran_service
 from app.utils.decorators import role_required
 from app.utils.responses import success_response, error_response
 from app.utils.pagination import format_pagination
@@ -35,8 +35,9 @@ def index():
 @role_required('admin', 'orang_tua')
 def store():
     try:
-        data = json.loads(request.form.get("data"))
-        files = request.files
+        # data = json.loads(request.form.get("data"))
+        data = request.get_json()
+        # files = request.files
         user_id = get_jwt_identity()
 
         schema = PendaftaranSchema()
@@ -44,10 +45,10 @@ def store():
         if errors:
             return error_response("Validation error", errors=errors, code=422)
 
-        pendaftaran = create(data, user_id, files)
+        pendaftaran = create(data, user_id)
 
         return success_response(
-            message="Pendaftaran berhasil dibuat",
+            message="Data pendaftaran berhasil disimpan",
             data=schema.dump(pendaftaran),
             code=201
         )
@@ -67,6 +68,28 @@ def show(id):
 
     schema = PendaftaranSchema()
     return success_response(data=schema.dump(pendaftaran), message="Data pendaftaran berhasil diambil", code=200)
+
+# upload berkas
+@bp_pendaftaran.route('/<int:id>/upload-berkas', methods=['POST'])
+@role_required('orang_tua')
+def upload_berkas(id):
+    try:
+        user_id = get_jwt_identity()
+        files = request.files
+
+        if not files:
+            return error_response("File wajib diupload", code=400)
+
+        result = upload_berkas_service(id, user_id, files)
+
+        return success_response(
+            message="Berkas berhasil diupload",
+            data=result
+        )
+
+    except Exception as e:
+        db.session.rollback()
+        return error_response(str(e), code=500)
 
 # upload bukti pembayaran
 @bp_pendaftaran.route('/<int:id>/upload-pembayaran', methods=['POST'])

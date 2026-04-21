@@ -20,7 +20,8 @@ def create_app():
     CORS(app,
           supports_credentials=True,
           origins=app.config["FRONTEND_URL"],
-          expose_headers=["X-CSRF-TOKEN"]  
+          expose_headers=["X-CSRF-TOKEN"],
+          allow_headers=["Content-Type", "X-CSRF-TOKEN"]
         )
 
     # app.route('/')(lambda: 'running')

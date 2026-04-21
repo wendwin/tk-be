@@ -98,7 +98,7 @@ def upload_bukti(id):
     try:
         user_id = get_jwt_identity()
 
-        file = request.files.get('file')
+        file = request.files.get('bukti_tf')
 
         if not file:
             return error_response("File wajib diupload", code=400)

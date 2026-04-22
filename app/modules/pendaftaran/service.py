@@ -228,3 +228,6 @@ def upload_pembayaran_service(pendaftaran_id, user_id, file):
         "file_path": file_url,
         "status_pembayaran": pendaftaran.status_pembayaran
     }
+
+def get_by_user_id(user_id):
+    return Pendaftaran.query.filter_by(user_id=user_id).first()

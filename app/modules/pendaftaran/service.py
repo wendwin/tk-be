@@ -1,7 +1,7 @@
 from app.extensions import db
 from app.models.pendaftaran import *
 from sqlalchemy.orm import joinedload
-from app.utils.file_helper import save_file, validate_file
+from app.utils.file_helper import upload_dokumen
 
 def generate_no():
     last = Pendaftaran.query.order_by(Pendaftaran.id.desc()).first()
@@ -19,7 +19,7 @@ def get_all(page=1, per_page=10, search=None):
 
     return query.paginate(page=page, per_page=per_page, error_out=False)
 
-def create(data, user_id, files=None):
+def create(data, user_id):
     no = generate_no()
     peserta_data = data["peserta"]
 
@@ -104,33 +104,33 @@ def create(data, user_id, files=None):
         db.session.add(info)
     
     # dokumen
-    dokumen_map = {
-        "kk": "kartu_keluarga",
-        "akte": "akta_kelahiran",
-        "kia": "kia",
-        "foto": "foto"
-    }
+    # dokumen_map = {
+    #     "kk": "kartu_keluarga",
+    #     "akte": "akta_kelahiran",
+    #     "kia": "kia",
+    #     "foto": "foto"
+    # }
 
-    dokumen_list = []
+    # dokumen_list = []
 
-    if files:
-        for key, jenis in dokumen_map.items():
-            file = files.get(key)
+    # if files:
+    #     for key, jenis in dokumen_map.items():
+    #         file = files.get(key)
 
-            if file:
-                validate_file(file)
-                file_url = save_file(file, "dokumen")
+    #         if file:
+    #             validate_file(file)
+    #             file_url = save_file(file, "dokumen")
 
-                dokumen_list.append(
-                    Dokumen(
-                        id_pendaftaran=pendaftaran.id,
-                        jenis_dokumen=jenis,
-                        file_path=file_url
-                    )
-                )
+    #             dokumen_list.append(
+    #                 Dokumen(
+    #                     id_pendaftaran=pendaftaran.id,
+    #                     jenis_dokumen=jenis,
+    #                     file_path=file_url
+    #                 )
+    #             )
 
-    if dokumen_list:
-        db.session.add_all(dokumen_list)
+    # if dokumen_list:
+    #     db.session.add_all(dokumen_list)
 
     db.session.commit()
     return pendaftaran
@@ -155,6 +155,52 @@ def get_by_id(id):
         joinedload(Pendaftaran.dokumen)
     ).filter_by(id=id).first()
 
+
+def upload_berkas_service(pendaftaran_id, user_id, files):
+    pendaftaran = Pendaftaran.query.filter_by(
+        id=pendaftaran_id,
+        user_id=user_id
+    ).first()
+
+    if not pendaftaran:
+        raise Exception("Data tidak ditemukan")
+
+    dokumen_map = {
+        "kk": ("kartu_keluarga", "kartu_keluarga"),
+        "akta": ("akta_kelahiran", "akta_kelahiran"),
+        "kia": ("kia", "kia"),
+        "foto": ("foto", "foto"),
+        # "surat_pernyataan": ("surat_pernyataan", "surat_pernyataan")
+    }
+
+    missing = [key for key in dokumen_map.keys() if not files.get(key)]
+    if missing:
+        raise Exception(f"Semua berkas wajib diupload: {', '.join(missing)}")
+
+    uploaded = []
+
+    for key, (jenis, folder) in dokumen_map.items():
+        file = files.get(key)
+
+        file_url = upload_dokumen(
+            pendaftaran,
+            file,
+            jenis,
+            folder=f"dokumen/{folder}"
+        )
+
+        uploaded.append({
+            "jenis": jenis,
+            "file_path": file_url
+        })
+
+    db.session.commit()
+
+    return {
+        "total": len(uploaded),
+        "dokumen": uploaded
+    }
+
 def upload_pembayaran_service(pendaftaran_id, user_id, file):
     pendaftaran = Pendaftaran.query.filter_by(
         id=pendaftaran_id,
@@ -162,17 +208,17 @@ def upload_pembayaran_service(pendaftaran_id, user_id, file):
     ).first()
 
     if not pendaftaran:
-        raise Exception("Data tidak ditemukan atau bukan milik user")
-    
-    validate_file(file)
-    file_url = save_file(file, "pembayaran")
+        raise Exception("Data tidak ditemukan")
 
-    dokumen = Dokumen(
-        id_pendaftaran=pendaftaran.id,
-        jenis_dokumen="bukti_pembayaran",
-        file_path=file_url
+    if pendaftaran.status_pembayaran == "paid":
+        raise Exception("Pembayaran sudah diverifikasi")
+
+    file_url = upload_dokumen(
+        pendaftaran,
+        file,
+        jenis="bukti_pembayaran",
+        folder="pembayaran"
     )
-    db.session.add(dokumen)
 
     pendaftaran.status_pembayaran = "pending"
 
@@ -182,3 +228,6 @@ def upload_pembayaran_service(pendaftaran_id, user_id, file):
         "file_path": file_url,
         "status_pembayaran": pendaftaran.status_pembayaran
     }
+
+def get_by_user_id(user_id):
+    return Pendaftaran.query.filter_by(user_id=user_id).first()

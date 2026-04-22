@@ -1,6 +1,8 @@
 import os
+from app.extensions import db
 from werkzeug.utils import secure_filename
 from datetime import datetime
+from app.models.pendaftaran.dokumen import Dokumen
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'pdf'}
 UPLOAD_FOLDER = 'uploads/pembayaran'
@@ -32,3 +34,27 @@ def save_file(file, subfolder):
     file.save(filepath)
 
     return f"/uploads/{subfolder}/{filename}"
+
+def upload_dokumen(pendaftaran, file, jenis, folder):
+    validate_file(file)
+    file_url = save_file(file, folder)
+
+    existing = Dokumen.query.filter_by(
+        id_pendaftaran=pendaftaran.id,
+        jenis_dokumen=jenis
+    ).first()
+
+    if existing:
+        old_path = existing.file_path.replace("/uploads/", "uploads/")
+        if os.path.exists(old_path):
+            os.remove(old_path)
+
+        existing.file_path = file_url
+    else:
+        db.session.add(Dokumen(
+            id_pendaftaran=pendaftaran.id,
+            jenis_dokumen=jenis,
+            file_path=file_url
+        ))
+
+    return file_url

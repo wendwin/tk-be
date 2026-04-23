@@ -4,3 +4,5 @@ from app.models.auth import *
 from app.models.pendaftaran import *
 # model akademik
 from app.models.akademik import *
+# mdoel asesmen
+from app.models.asesmen import *

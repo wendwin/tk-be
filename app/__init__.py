@@ -34,4 +34,8 @@ def create_app():
     from app.modules.pendaftaran.routes import bp_pendaftaran
     app.register_blueprint(bp_pendaftaran, url_prefix="/api/pendaftaran")
     
+    # asesmen
+    from app.modules.asesmen.route import bp_asesmen
+    app.register_blueprint(bp_asesmen, url_prefix="/api/asesmen")
+    
     return app

@@ -100,6 +100,16 @@ class PendaftaranSchema(Schema):
     peserta = fields.Nested(PesertaSchema)
     dokumen = fields.Nested(DokumenSchema, many=True)
 
+    id_gelombang = fields.Int(dump_only=True)
+
+    tanggal_observasi = fields.Date(allow_none=True)
+    jam_observasi = fields.Time(allow_none=True)    
+
+    status_observasi = fields.Str(
+        dump_only=True,
+        validate=validate.OneOf(['belum', 'terjadwal', 'hadir', 'tidak_hadir'])
+    )
+
 class PendaftaranListSchema(Schema):
     id = fields.Int()
     no_pendaftaran = fields.Str()

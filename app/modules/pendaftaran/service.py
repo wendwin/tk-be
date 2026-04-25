@@ -1,3 +1,4 @@
+from datetime import datetime
 from app.extensions import db
 from app.models.pendaftaran import *
 from sqlalchemy.orm import joinedload
@@ -8,6 +9,12 @@ def generate_no():
     if not last:
         return "001"
     return str(int(last.no_pendaftaran) + 1).zfill(3)
+
+def get_gelombang(tanggal_daftar):
+    return Gelombang.query.filter(
+        Gelombang.tanggal_mulai <= tanggal_daftar,
+        Gelombang.tanggal_selesai >= tanggal_daftar
+    ).first()
 
 def get_all(page=1, per_page=10, search=None):
     query = Pendaftaran.query.join(PesertaDidik)
@@ -23,13 +30,19 @@ def create(data, user_id):
     no = generate_no()
     peserta_data = data["peserta"]
 
+    tanggal_daftar = datetime.utcnow()
+    gelombang = get_gelombang(tanggal_daftar)
+
     # pendaftaran
     pendaftaran = Pendaftaran(
         user_id=user_id,
         no_pendaftaran=no,
         id_tahun=data["id_tahun"],
         jenis=data["jenis"],
-        program=data["program"]
+        program=data["program"],
+        tanggal_daftar=tanggal_daftar,
+        id_gelombang=gelombang.id if gelombang else None,
+        status_observasi='belum'
     )
     db.session.add(pendaftaran)
     db.session.flush()
@@ -103,35 +116,6 @@ def create(data, user_id):
         )
         db.session.add(info)
     
-    # dokumen
-    # dokumen_map = {
-    #     "kk": "kartu_keluarga",
-    #     "akte": "akta_kelahiran",
-    #     "kia": "kia",
-    #     "foto": "foto"
-    # }
-
-    # dokumen_list = []
-
-    # if files:
-    #     for key, jenis in dokumen_map.items():
-    #         file = files.get(key)
-
-    #         if file:
-    #             validate_file(file)
-    #             file_url = save_file(file, "dokumen")
-
-    #             dokumen_list.append(
-    #                 Dokumen(
-    #                     id_pendaftaran=pendaftaran.id,
-    #                     jenis_dokumen=jenis,
-    #                     file_path=file_url
-    #                 )
-    #             )
-
-    # if dokumen_list:
-    #     db.session.add_all(dokumen_list)
-
     db.session.commit()
     return pendaftaran
 

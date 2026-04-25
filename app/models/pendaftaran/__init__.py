@@ -6,3 +6,4 @@ from app.models.pendaftaran.kesehatan import Kesehatan
 from app.models.pendaftaran.orang_tua import OrangTua
 from app.models.pendaftaran.informasi import Informasi
 from app.models.pendaftaran.dokumen import Dokumen
+from app.models.pendaftaran.gelombang import Gelombang

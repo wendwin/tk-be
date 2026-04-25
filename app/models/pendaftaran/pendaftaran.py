@@ -27,3 +27,4 @@ class Pendaftaran(db.Model):
     peserta = db.relationship('PesertaDidik', backref='pendaftaran', uselist=False)
     dokumen = db.relationship('Dokumen', backref='pendaftaran')
     gelombang = db.relationship('Gelombang', backref='pendaftaran')
+    tahun_ajaran = db.relationship('TahunAjaran', backref='pendaftaran')

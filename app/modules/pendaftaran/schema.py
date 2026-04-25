@@ -78,6 +78,17 @@ class DokumenSchema(Schema):
     file_path = fields.Str()
     uploaded_at = fields.DateTime()
 
+class GelombangSchema(Schema):
+    id = fields.Int()
+    nama = fields.Str()
+
+class TahunAjaranSchema(Schema):
+    id = fields.Int()
+    label = fields.Method("get_label")
+
+    def get_label(self, obj):
+        return f"{obj.tahun_mulai}/{obj.tahun_selesai}"
+
 class PendaftaranSchema(Schema):
     id = fields.Int(dump_only=True)
     user_id = fields.Int(dump_only=True)
@@ -96,11 +107,14 @@ class PendaftaranSchema(Schema):
         validate=validate.OneOf(['reguler', 'halfday', 'fullday'])
     )
 
-    id_tahun = fields.Int(required=True)
+    id_tahun = fields.Int(load_only=True)
     peserta = fields.Nested(PesertaSchema)
     dokumen = fields.Nested(DokumenSchema, many=True)
 
-    id_gelombang = fields.Int(dump_only=True)
+    id_gelombang = fields.Int(load_only=True)
+
+    tahun_ajaran = fields.Nested(TahunAjaranSchema, dump_only=True)
+    gelombang = fields.Nested(GelombangSchema, dump_only=True)
 
     tanggal_observasi = fields.Date(allow_none=True)
     jam_observasi = fields.Time(allow_none=True)    

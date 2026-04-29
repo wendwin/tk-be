@@ -139,6 +139,92 @@ def get_by_id(id):
         joinedload(Pendaftaran.dokumen)
     ).filter_by(id=id).first()
 
+# update 
+def update_pendaftaran_service(pendaftaran, data):
+    pendaftaran.jenis = data.get("jenis", pendaftaran.jenis)
+    pendaftaran.program = data.get("program", pendaftaran.program)
+
+    peserta_data = data.get("peserta", {})
+
+    peserta = pendaftaran.peserta
+
+    peserta.nama_lengkap = peserta_data.get("nama_lengkap", peserta.nama_lengkap)
+    peserta.nama_panggilan = peserta_data.get("nama_panggilan", peserta.nama_panggilan)
+    peserta.tempat_lahir = peserta_data.get("tempat_lahir", peserta.tempat_lahir)
+    peserta.tanggal_lahir = peserta_data.get("tanggal_lahir", peserta.tanggal_lahir)
+    peserta.jenis_kelamin = peserta_data.get("jenis_kelamin", peserta.jenis_kelamin)
+    peserta.kewarganegaraan = peserta_data.get("kewarganegaraan", peserta.kewarganegaraan)
+    peserta.nik = peserta_data.get("nik", peserta.nik)
+    peserta.no_kk = peserta_data.get("no_kk", peserta.no_kk)
+    peserta.no_akta = peserta_data.get("no_akta", peserta.no_akta)
+    peserta.agama = peserta_data.get("agama", peserta.agama)
+    peserta.no_telp = peserta_data.get("no_telp", peserta.no_telp)
+    peserta.anak_ke = peserta_data.get("anak_ke", peserta.anak_ke)
+    peserta.jumlah_saudara = peserta_data.get("jumlah_saudara", peserta.jumlah_saudara)
+    peserta.bahasa = peserta_data.get("bahasa", peserta.bahasa)
+
+    alamat = peserta.alamat_domisili
+    alamat_data = peserta_data.get("alamat_domisili", {})
+
+    if alamat:
+        alamat.alamat_lengkap = alamat_data.get("alamat_lengkap", alamat.alamat_lengkap)
+        alamat.rt = alamat_data.get("rt", alamat.rt)
+        alamat.rw = alamat_data.get("rw", alamat.rw)
+        alamat.desa = alamat_data.get("desa", alamat.desa)
+        alamat.kecamatan = alamat_data.get("kecamatan", alamat.kecamatan)
+        alamat.kabupaten = alamat_data.get("kabupaten", alamat.kabupaten)
+        alamat.kode_pos = alamat_data.get("kode_pos", alamat.kode_pos)
+
+
+    kesehatan = peserta.kesehatan
+    kesehatan_data = peserta_data.get("kesehatan", {})
+
+    if kesehatan:
+        kesehatan.berat_badan = kesehatan_data.get("berat_badan", kesehatan.berat_badan)
+        kesehatan.tinggi_badan = kesehatan_data.get("tinggi_badan", kesehatan.tinggi_badan)
+        kesehatan.lingkar_kepala = kesehatan_data.get("lingkar_kepala", kesehatan.lingkar_kepala)
+        kesehatan.golongan_darah = kesehatan_data.get("golongan_darah", kesehatan.golongan_darah)
+        kesehatan.riwayat_penyakit = kesehatan_data.get("riwayat_penyakit", kesehatan.riwayat_penyakit)
+        kesehatan.alergi = kesehatan_data.get("alergi", kesehatan.alergi)
+        kesehatan.kebutuhan_khusus = kesehatan_data.get("kebutuhan_khusus", kesehatan.kebutuhan_khusus)
+
+    info = peserta.informasi
+    info_data = peserta_data.get("informasi", {})
+
+    if info:
+        info.tinggal_dengan = info_data.get("tinggal_dengan", info.tinggal_dengan)
+        info.jarak_sekolah = info_data.get("jarak_sekolah", info.jarak_sekolah)
+        info.waktu_tempuh = info_data.get("waktu_tempuh", info.waktu_tempuh)
+        info.kendaraan = info_data.get("kendaraan", info.kendaraan)
+        info.nama_sekolah = info_data.get("nama_sekolah", info.nama_sekolah)
+        info.npsn = info_data.get("npsn", info.npsn)
+        info.nisn = info_data.get("nisn", info.nisn)
+        info.bakat = info_data.get("bakat", info.bakat)
+        info.hobi = info_data.get("hobi", info.hobi)
+        info.cita_cita = info_data.get("cita_cita", info.cita_cita)
+
+    orang_tua_list = peserta_data.get("orang_tua", [])
+
+    for ot_data in orang_tua_list:
+        tipe = ot_data.get("tipe")
+
+        ot = next((o for o in peserta.orang_tua if o.tipe == tipe), None)
+        if not ot:
+            continue
+
+        ot.nama = ot_data.get("nama", ot.nama)
+        ot.tempat_lahir = ot_data.get("tempat_lahir", ot.tempat_lahir)
+        ot.tanggal_lahir = ot_data.get("tanggal_lahir", ot.tanggal_lahir)
+        ot.nik = ot_data.get("nik", ot.nik)
+        ot.pendidikan = ot_data.get("pendidikan", ot.pendidikan)
+        ot.pekerjaan = ot_data.get("pekerjaan", ot.pekerjaan)
+        ot.pendapatan = ot_data.get("pendapatan", ot.pendapatan)
+        ot.no_hp = ot_data.get("no_hp", ot.no_hp)
+        ot.email = ot_data.get("email", ot.email)
+        ot.alamat_kantor = ot_data.get("alamat_kantor", ot.alamat_kantor)
+
+    db.session.commit()
+    return pendaftaran
 
 def upload_berkas_service(pendaftaran_id, user_id, files):
     pendaftaran = Pendaftaran.query.filter_by(
@@ -150,8 +236,8 @@ def upload_berkas_service(pendaftaran_id, user_id, files):
         raise Exception("Data tidak ditemukan")
 
     dokumen_map = {
-        "kk": ("kartu_keluarga", "kartu_keluarga"),
-        "akta": ("akta_kelahiran", "akta_kelahiran"),
+        "kk": ("kk", "kk"),
+        "akta": ("akta", "akta"),
         "kia": ("kia", "kia"),
         "foto": ("foto", "foto"),
         # "surat_pernyataan": ("surat_pernyataan", "surat_pernyataan")

@@ -1,4 +1,5 @@
 import os
+import uuid
 from app.extensions import db
 from werkzeug.utils import secure_filename
 from datetime import datetime
@@ -16,27 +17,44 @@ def validate_file(file):
         raise Exception("Format file tidak diizinkan (png, jpg, jpeg)")
 
     file.seek(0, os.SEEK_END)
+    size = file.tell()
     file_length = file.tell()
     file.seek(0)
 
     if file_length > MAX_FILE_SIZE:
         raise Exception("Ukuran file maksimal 2MB")
+    
+    if size == 0:
+        raise Exception("File kosong")
+
+
+def generate_filename(original_filename):
+    ext = original_filename.rsplit(".", 1)[1].lower()
+    return f"{uuid.uuid4().hex}.{ext}"
+
 
 def save_file(file, subfolder):
     base_folder = os.path.join(os.getcwd(), "uploads", subfolder)
     os.makedirs(base_folder, exist_ok=True)
 
-    filename = secure_filename(file.filename)
-    timestamp = datetime.utcnow().strftime('%Y%m%d%H%M%S')
-    filename = f"{timestamp}_{filename}"
+    filename = generate_filename(file.filename)
 
     filepath = os.path.join(base_folder, filename)
     file.save(filepath)
 
     return f"/uploads/{subfolder}/{filename}"
 
+def delete_file_if_exists(file_path):
+    if not file_path:
+        return
+
+    real_path = file_path.replace("/uploads/", "uploads/")
+    if os.path.exists(real_path):
+        os.remove(real_path)
+
 def upload_dokumen(pendaftaran, file, jenis, folder):
     validate_file(file)
+
     file_url = save_file(file, folder)
 
     existing = Dokumen.query.filter_by(
@@ -45,10 +63,7 @@ def upload_dokumen(pendaftaran, file, jenis, folder):
     ).first()
 
     if existing:
-        old_path = existing.file_path.replace("/uploads/", "uploads/")
-        if os.path.exists(old_path):
-            os.remove(old_path)
-
+        delete_file_if_exists(existing.file_path)
         existing.file_path = file_url
     else:
         db.session.add(Dokumen(

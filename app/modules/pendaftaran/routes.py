@@ -3,7 +3,7 @@ from flask_jwt_extended import get_jwt_identity
 from app.extensions import db
 from flask import Blueprint, request, redirect, send_from_directory, json
 from .schema import PendaftaranSchema, PendaftaranListSchema
-from .service import get_all, create, get_by_id, get_by_user_id, upload_berkas_service,upload_pembayaran_service
+from .service import get_all, create, get_by_id, get_by_user_id, upload_berkas_service,upload_pembayaran_service, update_pendaftaran_service
 from app.utils.decorators import role_required
 from app.utils.responses import success_response, error_response
 from app.utils.pagination import format_pagination
@@ -69,6 +69,37 @@ def show(id):
     schema = PendaftaranSchema()
     return success_response(data=schema.dump(pendaftaran), message="Data pendaftaran berhasil diambil", code=200)
 
+# update 
+@bp_pendaftaran.route('/<int:id>', methods=['PUT'])
+@role_required('admin', 'orang_tua')
+def update(id):
+    try:
+        data = request.get_json()
+
+        if not data:
+            return error_response("Data tidak boleh kosong", code=400)
+
+        pendaftaran = get_by_id(id)
+        if not pendaftaran:
+            return error_response("Data tidak ditemukan", code=404)
+
+        schema = PendaftaranSchema()
+        errors = schema.validate(data, partial=True) 
+        if errors:
+            return error_response("Validation error", errors=errors, code=422)
+
+        updated = update_pendaftaran_service(pendaftaran, data)
+
+        return success_response(
+            message="Data pendaftaran berhasil diupdate",
+            data=schema.dump(updated),
+            code=200
+        )
+
+    except Exception as e:
+        db.session.rollback()
+        return error_response(message=str(e), code=500)
+    
 # upload berkas
 @bp_pendaftaran.route('/<int:id>/upload-berkas', methods=['POST'])
 @role_required('orang_tua')

@@ -189,7 +189,36 @@ def upload_bukti(id):
     except Exception as e:
         db.session.rollback()
         return error_response(str(e), code=500)
-    
+
+# verifikasi pembayaran
+@bp_pendaftaran.route('/<int:id>/status-pembayaran', methods=['PATCH'])
+@role_required('admin')
+def update_status_pembayaran(id):
+    try:
+        data = request.get_json()
+        status = data.get("status_pembayaran")
+
+        if status not in ["paid", "failed"]:
+            return error_response("Status tidak valid", code=422)
+
+        pendaftaran = get_by_id(id)
+
+        if not pendaftaran:
+            return error_response("Data tidak ditemukan", code=404)
+
+        pendaftaran.status_pembayaran = status
+
+        db.session.commit()
+
+        return success_response(
+            message="Status pembayaran berhasil diupdate",
+            data={"status_pembayaran": status}
+        )
+
+    except Exception as e:
+        db.session.rollback()
+        return error_response(message=str(e), code=500)
+      
 # akses file
 @bp_pendaftaran.route('/uploads/<path:filename>', methods=['GET'])
 @jwt_required()

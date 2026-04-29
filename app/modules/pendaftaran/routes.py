@@ -122,50 +122,34 @@ def upload_berkas(id):
         db.session.rollback()
         return error_response(str(e), code=500)
 
-# update status berkas pendaftaran
-@bp_pendaftaran.route('/<int:id>/verify', methods=['PATCH'])
-@jwt_required()
+# update status pendaftaran
+@bp_pendaftaran.route('/<int:id>/status', methods=['PATCH'])
 @role_required('admin')
-def verify_pendaftaran(id):
-    pendaftaran = get_by_id(id)
+def update_status_pendaftaran(id):
+    try:
+        data = request.get_json()
+        status = data.get("status")
 
-    if not pendaftaran:
-        return error_response("Data tidak ditemukan", code=404)
+        if status not in ["pending", "verified", "accepted", "rejected"]:
+            return error_response("Status tidak valid", code=422)
 
-    data = request.get_json()
-    status = data.get("status")
+        pendaftaran = get_by_id(id)
 
-    allowed_status = ['pending', 'verified', 'accepted', 'rejected']
+        if not pendaftaran:
+            return error_response("Data tidak ditemukan", code=404)
 
-    if status not in allowed_status:
-        return error_response("Status tidak valid", code=422)
+        pendaftaran.status = status
 
-    pendaftaran.status = status
-    db.session.commit()
+        db.session.commit()
 
-    return success_response(
-        message="Status berhasil diupdate",
-        data={"status": pendaftaran.status}
-    )
+        return success_response(
+            message="Status pendaftaran berhasil diupdate",
+            data={"status": status}
+        )
 
-# tolak status berkas pendaftaran
-@bp_pendaftaran.route('/<int:id>/reject', methods=['PATCH'])
-@jwt_required()
-@role_required('admin')
-def reject_pendaftaran(id):
-    pendaftaran = get_by_id(id)
-
-    if not pendaftaran:
-        return error_response("Data tidak ditemukan", 404)
-
-    pendaftaran.status = "rejected"
-
-    db.session.commit()
-
-    return success_response(
-        message="Pendaftaran ditolak",
-        data={"status": pendaftaran.status}
-    )
+    except Exception as e:
+        db.session.rollback()
+        return error_response(message=str(e), code=500)
 
 # upload bukti pembayaran
 @bp_pendaftaran.route('/<int:id>/upload-pembayaran', methods=['POST'])

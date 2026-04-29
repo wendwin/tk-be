@@ -2,11 +2,14 @@ import os
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from app.extensions import db
 from flask import Blueprint, request, redirect, send_from_directory, json
-from .schema import PendaftaranSchema, PendaftaranListSchema
+
+from app.models.pendaftaran.tahun_ajaran import TahunAjaran
+from .schema import PendaftaranSchema, PendaftaranListSchema, TahunAjaranSchema
 from .service import get_all, create, get_by_id, get_by_user_id, upload_berkas_service,upload_pembayaran_service, update_pendaftaran_service
 from app.utils.decorators import role_required
 from app.utils.responses import success_response, error_response
 from app.utils.pagination import format_pagination
+from app.utils.formulir_pdf import generate_formulir_pdf
 
 bp_pendaftaran = Blueprint('pendaftaran', __name__)
 
@@ -209,6 +212,35 @@ def update_status_pembayaran(id):
 @role_required('admin')
 def uploaded_file(filename):
     return send_from_directory(os.path.join(os.getcwd(), 'uploads'), filename)
+
+@bp_pendaftaran.route('/<int:id>/download', methods=['GET'])
+@role_required('admin')
+def download_formulir(id):
+    pendaftaran = get_by_id(id)
+
+    if not pendaftaran:
+        return error_response("Data tidak ditemukan", code=404)
+
+    folder = os.path.join(os.getcwd(), "uploads", "formulir")
+    os.makedirs(folder, exist_ok=True)
+
+    tahun_ajaran = TahunAjaran.query.filter_by(status="aktif").first()
+    
+    tahunAjaranSchema = TahunAjaranSchema()
+    result = tahunAjaranSchema.dump(tahun_ajaran)
+
+    tahun_label = result["label"]
+    filename = f"{pendaftaran.no_pendaftaran}.pdf"
+    filepath = os.path.join(folder, filename)
+
+    if not os.path.exists(filepath):
+        generate_formulir_pdf(pendaftaran, filepath, tahun_label)
+
+    return send_from_directory(
+        folder,
+        filename,
+        as_attachment=False
+    )
 
 # me
 @bp_pendaftaran.route('/me', methods=['GET'])

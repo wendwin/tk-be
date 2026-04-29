@@ -122,6 +122,51 @@ def upload_berkas(id):
         db.session.rollback()
         return error_response(str(e), code=500)
 
+# update status berkas pendaftaran
+@bp_pendaftaran.route('/<int:id>/verify', methods=['PATCH'])
+@jwt_required()
+@role_required('admin')
+def verify_pendaftaran(id):
+    pendaftaran = get_by_id(id)
+
+    if not pendaftaran:
+        return error_response("Data tidak ditemukan", code=404)
+
+    data = request.get_json()
+    status = data.get("status")
+
+    allowed_status = ['pending', 'verified', 'accepted', 'rejected']
+
+    if status not in allowed_status:
+        return error_response("Status tidak valid", code=422)
+
+    pendaftaran.status = status
+    db.session.commit()
+
+    return success_response(
+        message="Status berhasil diupdate",
+        data={"status": pendaftaran.status}
+    )
+
+# tolak status berkas pendaftaran
+@bp_pendaftaran.route('/<int:id>/reject', methods=['PATCH'])
+@jwt_required()
+@role_required('admin')
+def reject_pendaftaran(id):
+    pendaftaran = get_by_id(id)
+
+    if not pendaftaran:
+        return error_response("Data tidak ditemukan", 404)
+
+    pendaftaran.status = "rejected"
+
+    db.session.commit()
+
+    return success_response(
+        message="Pendaftaran ditolak",
+        data={"status": pendaftaran.status}
+    )
+
 # upload bukti pembayaran
 @bp_pendaftaran.route('/<int:id>/upload-pembayaran', methods=['POST'])
 @role_required('orang_tua')
@@ -152,6 +197,7 @@ def upload_bukti(id):
 def uploaded_file(filename):
     return send_from_directory(os.path.join(os.getcwd(), 'uploads'), filename)
 
+# me
 @bp_pendaftaran.route('/me', methods=['GET'])
 @role_required('admin', 'orang_tua')
 def get_me():

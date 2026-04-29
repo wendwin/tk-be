@@ -236,8 +236,8 @@ def upload_berkas_service(pendaftaran_id, user_id, files):
         raise Exception("Data tidak ditemukan")
 
     dokumen_map = {
-        "kk": ("kartu_keluarga", "kartu_keluarga"),
-        "akta": ("akta_kelahiran", "akta_kelahiran"),
+        "kk": ("kk", "kk"),
+        "akta": ("akta", "akta"),
         "kia": ("kia", "kia"),
         "foto": ("foto", "foto"),
         # "surat_pernyataan": ("surat_pernyataan", "surat_pernyataan")

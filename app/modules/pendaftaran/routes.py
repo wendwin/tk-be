@@ -1,5 +1,5 @@
 import os
-from flask_jwt_extended import get_jwt_identity
+from flask_jwt_extended import get_jwt_identity, jwt_required
 from app.extensions import db
 from flask import Blueprint, request, redirect, send_from_directory, json
 from .schema import PendaftaranSchema, PendaftaranListSchema
@@ -147,6 +147,8 @@ def upload_bukti(id):
     
 # akses file
 @bp_pendaftaran.route('/uploads/<path:filename>', methods=['GET'])
+@jwt_required()
+@role_required('admin')
 def uploaded_file(filename):
     return send_from_directory(os.path.join(os.getcwd(), 'uploads'), filename)
 

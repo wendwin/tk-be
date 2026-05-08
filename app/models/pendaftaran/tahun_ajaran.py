@@ -7,3 +7,7 @@ class TahunAjaran(db.Model):
     tahun_mulai = db.Column(db.Integer)
     tahun_selesai = db.Column(db.Integer)
     status = db.Column(db.String(20))
+
+    @property
+    def label(self):
+        return f"{self.tahun_mulai}/{self.tahun_selesai}"

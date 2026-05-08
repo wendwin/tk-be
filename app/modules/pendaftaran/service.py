@@ -312,6 +312,7 @@ def generate_surat_pernyataan(user_id):
     pendaftaran = Pendaftaran.query.options(
         joinedload(Pendaftaran.peserta).joinedload(PesertaDidik.alamat_domisili),
         joinedload(Pendaftaran.peserta).joinedload(PesertaDidik.orang_tua),
+        joinedload(Pendaftaran.tahun_ajaran),
     ).filter_by(user_id=user_id).first()
 
     if not pendaftaran:
@@ -320,6 +321,7 @@ def generate_surat_pernyataan(user_id):
     peserta = pendaftaran.peserta
     ayah = next((o for o in peserta.orang_tua if o.tipe == "ayah"), None)
     alamat = peserta.alamat_domisili
+    tahun_ajaran = (pendaftaran.tahun_ajaran.label if pendaftaran.tahun_ajaran else "................")
     
     alamat_text = "-"
     if alamat:
@@ -402,7 +404,7 @@ def generate_surat_pernyataan(user_id):
         ]))
         return t
 
-    elements.append(create_point("1.", "Saya bersedia membayar deposit sebesar Rp.................................(.............................................................................................................................................) agar tercatat sebagai anak didik baru Tahun Ajaran yang akan diperhitungkan dalam administrasi keuangan."))
+    elements.append(create_point("1.",f"Sanggup bersedia membayar deposit sebesar Rp................................. (...............................................................................................................................................) agar tercatat sebagai anak didik baru Tahun Ajaran {tahun_ajaran} yang akan diperhitungkan dalam administrasi keuangan."))
     elements.append(create_point("2.", "Apabila anak saya sudah terdaftar lalu mengundurkan diri/membatalkan menyekolahkan di KB & TK Masjid Syuhada, maka uang deposit akan saya infaqan 80% untuk pengembangan KB & TK Masjid Syuhada."))
     elements.append(create_point("3.", "Apabila saya telah memutuskan menyekolahkan anak saya di KB & TK Masjid Syuhada, maka saya akan menerima pengelompokkan anak saya sesuai ketentuan KB & TK Masjid Syuhada, mendukung penuh kegiatan bagi anak saya dan terlibat aktif pada kegiatan Orang Tua yang diselenggarakan oleh KB & TK Masjid Syuhada dan komite KB & TK Masjid Syuhada."))
     elements.append(create_point("4.", "Apabila saya telah memutuskan menyekolahkan anak saya di KB & TK Masjid Syuhada, maka saya akan mengikuti ketentuan pembayaran administrasi keuangan sesuai ketentuan KB & TK Masjid Syuhada sebagai berikut:"))

@@ -1,6 +1,7 @@
 alembic==1.18.4
 blinker==1.9.0
 cffi==2.0.0
+charset-normalizer==3.4.7
 click==8.3.1
 colorama==0.4.6
 cryptography==46.0.7
@@ -21,10 +22,12 @@ MarkupSafe==3.0.3
 marshmallow==4.2.2
 ordered-set==4.1.0
 packaging==26.1
+pillow==12.2.0
 pycparser==3.0
 PyJWT==2.12.1
 PyMySQL==1.1.2
 python-dotenv==1.2.2
+reportlab==4.5.0
 SQLAlchemy==2.0.48
 typing_extensions==4.15.0
 Werkzeug==3.1.6

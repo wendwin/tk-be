@@ -1,15 +1,17 @@
 import os
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from app.extensions import db
-from flask import Blueprint, request, redirect, send_from_directory, json
+from flask import Blueprint, request, redirect, send_from_directory, json, current_app, send_file
 
 from app.models.pendaftaran.tahun_ajaran import TahunAjaran
 from .schema import PendaftaranSchema, PendaftaranListSchema, TahunAjaranSchema
-from .service import get_all, create, get_by_id, get_by_user_id, upload_berkas_service,upload_pembayaran_service, update_pendaftaran_service
+from .service import get_all, create, get_by_id, get_by_user_id, upload_berkas_service,upload_pembayaran_service, update_pendaftaran_service, generate_surat_pernyataan
 from app.utils.decorators import role_required
 from app.utils.responses import success_response, error_response
 from app.utils.pagination import format_pagination
 from app.utils.formulir_pdf import generate_formulir_pdf
+
+import traceback
 
 bp_pendaftaran = Blueprint('pendaftaran', __name__)
 
@@ -242,6 +244,24 @@ def download_formulir(id):
         as_attachment=False
     )
 
+# download surat pernyataan
+@bp_pendaftaran.route('/download-surat-pernyataan', methods=['GET'])
+@role_required('orang_tua')
+def download_surat_pernyataan():
+    try:
+        user_id = get_jwt_identity()
+
+        file_path = generate_surat_pernyataan(user_id)
+
+        return send_file(
+            file_path,
+            as_attachment=True,
+            download_name='surat_pernyataan.pdf'
+        )
+
+    except Exception as e:
+        return error_response(str(e), code=500)
+    
 # me
 @bp_pendaftaran.route('/me', methods=['GET'])
 @role_required('admin', 'orang_tua')

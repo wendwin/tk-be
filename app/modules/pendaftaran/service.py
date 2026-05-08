@@ -248,7 +248,7 @@ def upload_berkas_service(pendaftaran_id, user_id, files):
         "akta": ("akta", "akta"),
         "kia": ("kia", "kia"),
         "foto": ("foto", "foto"),
-        "suratPernyataan": ("super", "super")
+        "surat_pernyataan": ("surat_pernyataan", "surat_pernyataan")
     }
 
     missing = [key for key in dokumen_map.keys() if not files.get(key)]

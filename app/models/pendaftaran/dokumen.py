@@ -5,8 +5,11 @@ class Dokumen(db.Model):
     __tablename__ = 'dokumen'
 
     id = db.Column(db.Integer, primary_key=True)
-    id_pendaftaran = db.Column(db.Integer, db.ForeignKey('pendaftaran.id'))
 
-    jenis_dokumen = db.Column(db.String(50))
-    file_path = db.Column(db.String(255))
-    uploaded_at = db.Column(db.DateTime, default=datetime.utcnow)
+    pendaftaran_id = db.Column(db.Integer,db.ForeignKey('pendaftaran.id'),nullable=False)
+
+    jenis_dokumen = db.Column(db.Enum('kk','akta','kia','foto','surat_pernyataan',name='jenis_dokumen_enum'),nullable=False)
+    file_path = db.Column(db.String(255), nullable=False)
+
+    created_at = db.Column(db.DateTime,nullable=False,default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime,nullable=False,default=datetime.utcnow,onupdate=datetime.utcnow)

@@ -89,7 +89,8 @@ def update(id):
             return error_response("Data tidak ditemukan", code=404)
 
         schema = PendaftaranSchema()
-        errors = schema.validate(data, partial=True) 
+        errors = schema.validate(data, partial=True)
+
         if errors:
             return error_response("Validation error", errors=errors, code=422)
 

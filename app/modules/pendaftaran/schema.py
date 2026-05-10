@@ -120,6 +120,9 @@ class PesertaSchema(Schema):
 
     @validates_schema
     def validate_alamat(self, data, **kwargs):
+        if "alamat_kk_same" not in data:
+            return
+
         if not data.get("alamat_kk_same") and not data.get("alamat_kk"):
             raise ValidationError(
                 "alamat_kk wajib diisi jika tidak sama dengan domisili",

@@ -166,64 +166,83 @@ def update_pendaftaran_service(pendaftaran, data):
     pendaftaran.program = data.get("program", pendaftaran.program)
 
     peserta_data = data.get("peserta", {})
-
     peserta = pendaftaran.peserta
 
-    peserta.nama_lengkap = peserta_data.get("nama_lengkap", peserta.nama_lengkap)
-    peserta.nama_panggilan = peserta_data.get("nama_panggilan", peserta.nama_panggilan)
-    peserta.tempat_lahir = peserta_data.get("tempat_lahir", peserta.tempat_lahir)
-    peserta.tanggal_lahir = peserta_data.get("tanggal_lahir", peserta.tanggal_lahir)
-    peserta.jenis_kelamin = peserta_data.get("jenis_kelamin", peserta.jenis_kelamin)
-    peserta.kewarganegaraan = peserta_data.get("kewarganegaraan", peserta.kewarganegaraan)
-    peserta.nik = peserta_data.get("nik", peserta.nik)
-    peserta.no_kk = peserta_data.get("no_kk", peserta.no_kk)
-    peserta.no_akta = peserta_data.get("no_akta", peserta.no_akta)
-    peserta.agama = peserta_data.get("agama", peserta.agama)
-    peserta.no_telp = peserta_data.get("no_telp", peserta.no_telp)
-    peserta.anak_ke = peserta_data.get("anak_ke", peserta.anak_ke)
-    peserta.jumlah_saudara = peserta_data.get("jumlah_saudara", peserta.jumlah_saudara)
-    peserta.bahasa = peserta_data.get("bahasa", peserta.bahasa)
+    # peserta
+    for field in [
+        "nama_lengkap", "nama_panggilan", "tempat_lahir",
+        "tanggal_lahir", "jenis_kelamin", "kewarganegaraan",
+        "nik", "no_kk", "no_akta", "agama",
+        "no_telp", "anak_ke", "jumlah_saudara", "bahasa"
+    ]:
+        if field in peserta_data:
+            setattr(peserta, field, peserta_data[field])
 
-    alamat = peserta.alamat_domisili
-    alamat_data = peserta_data.get("alamat_domisili", {})
+    # alamat domisili
+    alamat_data = peserta_data.get("alamat_domisili")
+    if alamat_data and peserta.alamat_domisili:
+        alamat = peserta.alamat_domisili
 
-    if alamat:
-        alamat.alamat_lengkap = alamat_data.get("alamat_lengkap", alamat.alamat_lengkap)
-        alamat.rt = alamat_data.get("rt", alamat.rt)
-        alamat.rw = alamat_data.get("rw", alamat.rw)
-        alamat.desa = alamat_data.get("desa", alamat.desa)
-        alamat.kecamatan = alamat_data.get("kecamatan", alamat.kecamatan)
-        alamat.kabupaten = alamat_data.get("kabupaten", alamat.kabupaten)
-        alamat.kode_pos = alamat_data.get("kode_pos", alamat.kode_pos)
+        for field in [
+            "alamat_lengkap", "rt", "rw",
+            "kelurahan", "kecamatan",
+            "kabupaten", "kode_pos"
+        ]:
+            if field in alamat_data:
+                setattr(alamat, field, alamat_data[field])
 
+    # alamat kk
+    alamat_kk_same = peserta_data.get("alamat_kk_same", True)
 
-    kesehatan = peserta.kesehatan
+    if alamat_kk_same:
+        peserta.alamat_kk = peserta.alamat_domisili
+    else:
+        alamat_kk_data = peserta_data.get("alamat_kk")
+
+        if alamat_kk_data:
+            if peserta.alamat_kk:
+                alamat_kk = peserta.alamat_kk
+                for field in [
+                    "alamat_lengkap", "rt", "rw",
+                    "kelurahan", "kecamatan",
+                    "kabupaten", "kode_pos"
+                ]:
+                    if field in alamat_kk_data:
+                        setattr(alamat_kk, field, alamat_kk_data[field])
+            else:
+                new_alamat = Alamat(**alamat_kk_data)
+                db.session.add(new_alamat)
+                db.session.flush()
+                peserta.alamat_kk = new_alamat
+
+    # kesehatan
     kesehatan_data = peserta_data.get("kesehatan", {})
+    if peserta.kesehatan and kesehatan_data:
+        kesehatan = peserta.kesehatan
 
-    if kesehatan:
-        kesehatan.berat_badan = kesehatan_data.get("berat_badan", kesehatan.berat_badan)
-        kesehatan.tinggi_badan = kesehatan_data.get("tinggi_badan", kesehatan.tinggi_badan)
-        kesehatan.lingkar_kepala = kesehatan_data.get("lingkar_kepala", kesehatan.lingkar_kepala)
-        kesehatan.golongan_darah = kesehatan_data.get("golongan_darah", kesehatan.golongan_darah)
-        kesehatan.riwayat_penyakit = kesehatan_data.get("riwayat_penyakit", kesehatan.riwayat_penyakit)
-        kesehatan.alergi = kesehatan_data.get("alergi", kesehatan.alergi)
-        kesehatan.kebutuhan_khusus = kesehatan_data.get("kebutuhan_khusus", kesehatan.kebutuhan_khusus)
+        for field in [
+            "berat_badan", "tinggi_badan", "lingkar_kepala",
+            "golongan_darah", "riwayat_penyakit",
+            "alergi", "kebutuhan_khusus"
+        ]:
+            if field in kesehatan_data:
+                setattr(kesehatan, field, kesehatan_data[field])
 
-    info = peserta.informasi
+    # informasi
     info_data = peserta_data.get("informasi", {})
+    if peserta.informasi and info_data:
+        info = peserta.informasi
 
-    if info:
-        info.tinggal_dengan = info_data.get("tinggal_dengan", info.tinggal_dengan)
-        info.jarak_sekolah = info_data.get("jarak_sekolah", info.jarak_sekolah)
-        info.waktu_tempuh = info_data.get("waktu_tempuh", info.waktu_tempuh)
-        info.kendaraan = info_data.get("kendaraan", info.kendaraan)
-        info.nama_sekolah = info_data.get("nama_sekolah", info.nama_sekolah)
-        info.npsn = info_data.get("npsn", info.npsn)
-        info.nisn = info_data.get("nisn", info.nisn)
-        info.bakat = info_data.get("bakat", info.bakat)
-        info.hobi = info_data.get("hobi", info.hobi)
-        info.cita_cita = info_data.get("cita_cita", info.cita_cita)
+        for field in [
+            "tinggal_dengan", "jarak_sekolah", "waktu_tempuh",
+            "kendaraan", "pernah_sekolah", "nama_sekolah",
+            "npsn", "nisn", "bakat", "hobi",
+            "cita_cita", "sumber_informasi"
+        ]:
+            if field in info_data:
+                setattr(info, field, info_data[field])
 
+    # orang tua
     orang_tua_list = peserta_data.get("orang_tua", [])
 
     for ot_data in orang_tua_list:
@@ -233,16 +252,14 @@ def update_pendaftaran_service(pendaftaran, data):
         if not ot:
             continue
 
-        ot.nama = ot_data.get("nama", ot.nama)
-        ot.tempat_lahir = ot_data.get("tempat_lahir", ot.tempat_lahir)
-        ot.tanggal_lahir = ot_data.get("tanggal_lahir", ot.tanggal_lahir)
-        ot.nik = ot_data.get("nik", ot.nik)
-        ot.pendidikan = ot_data.get("pendidikan", ot.pendidikan)
-        ot.pekerjaan = ot_data.get("pekerjaan", ot.pekerjaan)
-        ot.pendapatan = ot_data.get("pendapatan", ot.pendapatan)
-        ot.no_hp = ot_data.get("no_hp", ot.no_hp)
-        ot.email = ot_data.get("email", ot.email)
-        ot.alamat_kantor = ot_data.get("alamat_kantor", ot.alamat_kantor)
+        for field in [
+            "nama", "tempat_lahir", "tanggal_lahir",
+            "nik", "pendidikan", "pekerjaan",
+            "pendapatan", "no_hp", "email",
+            "alamat_kantor"
+        ]:
+            if field in ot_data:
+                setattr(ot, field, ot_data[field])
 
     db.session.commit()
     return pendaftaran
@@ -338,7 +355,7 @@ def generate_surat_pernyataan(user_id):
     
     alamat_text = "-"
     if alamat:
-        alamat_text = f"{alamat.alamat_lengkap}, RT {alamat.rt}/RW {alamat.rw}, {alamat.desa}, {alamat.kecamatan}, {alamat.kabupaten}"
+        alamat_text = f"{alamat.alamat_lengkap}, RT {alamat.rt}/RW {alamat.rw}, {alamat.kelurahan}, {alamat.kecamatan}, {alamat.kabupaten}"
 
     tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
     doc = SimpleDocTemplate(

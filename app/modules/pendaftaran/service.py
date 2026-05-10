@@ -265,9 +265,9 @@ def update_pendaftaran_service(pendaftaran, data):
     return pendaftaran
 
 def upload_berkas_service(pendaftaran_id, user_id, files):
-    pendaftaran = Pendaftaran.query.filter_by(
-        id=pendaftaran_id,
-        user_id=user_id
+    pendaftaran = Pendaftaran.query.join(Pendaftaran.peserta).filter(
+        Pendaftaran.id == pendaftaran_id,
+        PesertaDidik.user_id == user_id
     ).first()
 
     if not pendaftaran:

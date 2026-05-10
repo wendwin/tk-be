@@ -132,7 +132,7 @@ class PesertaSchema(Schema):
 class DokumenSchema(Schema):
     jenis_dokumen = fields.Str(
         required=True,
-        validate=validate.OneOf(['kk','akta','kia','foto','surat_pernyataan']))
+        validate=validate.OneOf(['kk','akta','kia','foto','surat_pernyataan', 'bukti_pembayaran']))
     file_path = fields.Str(required=True)
 
 class GelombangSchema(Schema):

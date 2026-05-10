@@ -8,7 +8,7 @@ class Dokumen(db.Model):
 
     pendaftaran_id = db.Column(db.Integer,db.ForeignKey('pendaftaran.id'),nullable=False)
 
-    jenis_dokumen = db.Column(db.Enum('kk','akta','kia','foto','surat_pernyataan',name='jenis_dokumen_enum'),nullable=False)
+    jenis_dokumen = db.Column(db.Enum('kk','akta','kia','foto','surat_pernyataan', 'bukti_pembayaran',name='jenis_dokumen_enum'),nullable=False)
     file_path = db.Column(db.String(255), nullable=False)
 
     created_at = db.Column(db.DateTime,nullable=False,default=datetime.utcnow)

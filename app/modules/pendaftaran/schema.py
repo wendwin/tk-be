@@ -1,4 +1,4 @@
-from marshmallow import Schema, fields, validate
+from marshmallow import Schema, fields, validate, ValidationError, validates_schema
 
 class AlamatSchema(Schema):
     
@@ -39,7 +39,7 @@ class OrangTuaSchema(Schema):
     )
     email = fields.Email(allow_none=True)
 
-    alamat = fields.Nested(AlamatSchema, required=True)
+    alamat = fields.Nested(AlamatSchema, dump_only=True)
 
 class KesehatanSchema(Schema):
     berat_badan = fields.Float(allow_none=True)
@@ -110,28 +110,21 @@ class PesertaSchema(Schema):
     jumlah_saudara = fields.Int(required=True)
     bahasa = fields.Str(required=True)
 
-    alamat_domisili = fields.Nested(
-        AlamatSchema,
-        required=True
-    )
-    alamat_kk = fields.Nested(
-        AlamatSchema,
-        required=True
-    )
+    alamat_domisili = fields.Nested(AlamatSchema, required=True)
+    alamat_kk = fields.Nested(AlamatSchema, required=False, allow_none=True)
+    alamat_kk_same = fields.Boolean(required=True)
+    
+    kesehatan = fields.Nested(KesehatanSchema,required=True)
+    orang_tua = fields.Nested(OrangTuaSchema,many=True,required=True)
+    informasi = fields.Nested(InformasiSchema,required=True)
 
-    kesehatan = fields.Nested(
-        KesehatanSchema,
-        required=True
-    )
-    orang_tua = fields.Nested(
-        OrangTuaSchema,
-        many=True,
-        required=True
-    )
-    informasi = fields.Nested(
-        InformasiSchema,
-        required=True
-    )
+    @validates_schema
+    def validate_alamat(self, data, **kwargs):
+        if not data.get("alamat_kk_same") and not data.get("alamat_kk"):
+            raise ValidationError(
+                "alamat_kk wajib diisi jika tidak sama dengan domisili",
+                field_name="alamat_kk"
+            )
 
 class DokumenSchema(Schema):
     jenis_dokumen = fields.Str(

@@ -269,12 +269,17 @@ def download_surat_pernyataan():
 def get_me():
     user_id = get_jwt_identity()
 
-    pendaftaran = get_by_user_id(user_id) 
+    pendaftaran = get_by_user_id(user_id)
 
     if not pendaftaran:
-        return success_response(data=None, message="Belum ada pendaftaran", code=200)
+        return success_response(
+            data=[],
+            message="Belum ada pendaftaran",
+            code=200
+        )
 
-    schema = PendaftaranSchema()
+    schema = PendaftaranSchema(many=True)
+
     return success_response(
         data=schema.dump(pendaftaran),
         message="Data pendaftaran berhasil diambil",

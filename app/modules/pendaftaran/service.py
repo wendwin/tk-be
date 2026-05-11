@@ -462,4 +462,9 @@ def generate_surat_pernyataan(user_id):
     return tmp.name
 
 def get_by_user_id(user_id):
-    return Pendaftaran.query.filter_by(user_id=user_id).first()
+    return (
+        Pendaftaran.query
+        .join(PesertaDidik)
+        .filter(PesertaDidik.user_id == user_id)
+        .all()
+    )

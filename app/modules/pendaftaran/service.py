@@ -349,11 +349,19 @@ def upload_pembayaran_service(pendaftaran_id, user_id, file):
 
 FOLIO = (210*mm, 330*mm)
 def generate_surat_pernyataan(user_id):
-    pendaftaran = Pendaftaran.query.options(
-        joinedload(Pendaftaran.peserta).joinedload(PesertaDidik.alamat_domisili),
-        joinedload(Pendaftaran.peserta).joinedload(PesertaDidik.orang_tua),
-        joinedload(Pendaftaran.tahun_ajaran),
-    ).filter_by(user_id=user_id).first()
+    pendaftaran = (
+        Pendaftaran.query
+        .join(Pendaftaran.peserta)
+        .options(
+            joinedload(Pendaftaran.peserta)
+            .joinedload(PesertaDidik.alamat_domisili),
+            joinedload(Pendaftaran.peserta)
+            .joinedload(PesertaDidik.orang_tua),
+            joinedload(Pendaftaran.tahun_ajaran),
+        )
+        .filter(PesertaDidik.user_id == user_id)
+        .first()
+    )
 
     if not pendaftaran:
         raise Exception("Data pendaftaran tidak ditemukan")

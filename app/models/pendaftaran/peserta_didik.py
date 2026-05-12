@@ -41,7 +41,7 @@ class PesertaDidik(db.Model):
         nullable=False
     )
 
-    no_telp = db.Column(db.String(20))
+    no_telp = db.Column(db.String(20), nullable=False)
 
     anak_ke = db.Column(db.Integer, nullable=False)
     jumlah_saudara = db.Column(db.Integer, nullable=False)

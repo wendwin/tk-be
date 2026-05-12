@@ -5,16 +5,17 @@ class Kesehatan(db.Model):
     __tablename__ = 'kesehatan'
 
     id = db.Column(db.Integer, primary_key=True)
-
     peserta_id = db.Column(db.Integer, db.ForeignKey('peserta_didik.id'), nullable=False)
 
-    berat_badan = db.Column(db.Float)
-    tinggi_badan = db.Column(db.Float)
-    lingkar_kepala = db.Column(db.Float)
-    golongan_darah = db.Column(db.Enum('A', 'B', 'AB', 'O', name='golongan_darah_enum'))
-    riwayat_penyakit = db.Column(db.Text)
-    alergi = db.Column(db.Text)
-    kebutuhan_khusus = db.Column(db.String(100))
+    berat_badan = db.Column(db.Float, nullable=False)
+    tinggi_badan = db.Column(db.Float, nullable=False)
+    lingkar_kepala = db.Column(db.Float, nullable=False)
+
+    golongan_darah = db.Column(db.Enum('A', 'B', 'AB', 'O', name='golongan_darah_enum'), nullable=False)
+
+    riwayat_penyakit = db.Column(db.Text, nullable=False)
+    alergi = db.Column(db.Text, nullable=False)
+    kebutuhan_khusus = db.Column(db.JSON, nullable=False, default=list)
 
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime,nullable=False,default=datetime.utcnow,onupdate=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)

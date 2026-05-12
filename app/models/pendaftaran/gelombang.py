@@ -14,7 +14,7 @@ class Gelombang(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
 
-    tahun_ajaran_id = db.Column(db.Integer,db.ForeignKey('tahun_ajaran.id'),nullable=False)
+    tahun_ajaran_id = db.Column(db.Integer,db.ForeignKey('tahun_ajaran.id'),nullable=False,  index=True)
 
     nama = db.Column(db.String(50), nullable=False)
     tanggal_mulai = db.Column(db.Date, nullable=False)

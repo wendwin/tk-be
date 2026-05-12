@@ -16,10 +16,10 @@ class OrangTua(db.Model):
     nik = db.Column(db.String(16), nullable=False)
     pendidikan = db.Column(db.Enum('SD','SMP','SMA','D1','D2','D3','D4','S1','S2','S3',name='pendidikan_enum'),nullable=False)
     pekerjaan = db.Column(db.String(50), nullable=False)
-    pendapatan = db.Column(db.Numeric(15, 2))
+    pendapatan = db.Column(db.Numeric(15, 2), nullable=False)
     alamat_kantor = db.Column(db.Text)
     no_hp = db.Column(db.String(20), nullable=False)
-    email = db.Column(db.String(100))
+    email = db.Column(db.String(100), nullable=False)
     alamat = db.relationship('Alamat')
 
     created_at = db.Column(db.DateTime,nullable=False,default=datetime.utcnow)

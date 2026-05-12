@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 from app.extensions import db
 from app.models.pendaftaran import *
@@ -84,9 +85,18 @@ def create(data, user_id):
     db.session.flush()
 
     # kesehatan
+    kesehatan_data = peserta_data["kesehatan"]
+
     kesehatan = Kesehatan(
         peserta_id=peserta.id,
-        **peserta_data["kesehatan"]
+        berat_badan=kesehatan_data.get("berat_badan"),
+        tinggi_badan=kesehatan_data.get("tinggi_badan"),
+        lingkar_kepala=kesehatan_data.get("lingkar_kepala"),
+        golongan_darah=kesehatan_data.get("golongan_darah"),
+        riwayat_penyakit=kesehatan_data.get("riwayat_penyakit"),
+        alergi=kesehatan_data.get("alergi"),
+
+         kebutuhan_khusus=kesehatan_data.get("kebutuhan_khusus", [])
     )
     db.session.add(kesehatan)
 

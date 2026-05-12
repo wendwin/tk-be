@@ -8,10 +8,10 @@ class Informasi(db.Model):
 
     peserta_id = db.Column(db.Integer, db.ForeignKey('peserta_didik.id'), nullable=False)
 
-    tinggal_dengan = db.Column(db.String(50))
-    jarak_sekolah = db.Column(db.Float)
-    waktu_tempuh = db.Column(db.String(50))
-    kendaraan = db.Column(db.String(50))
+    tinggal_dengan = db.Column(db.String(50), nullable=False)
+    jarak_sekolah = db.Column(db.Float, nullable=False)
+    waktu_tempuh = db.Column(db.String(50), nullable=False)
+    kendaraan = db.Column(db.String(50), nullable=False)
     pernah_sekolah = db.Column(db.Boolean,nullable=False,default=False)
     nama_sekolah = db.Column(db.String(150))
     npsn = db.Column(db.String(20))

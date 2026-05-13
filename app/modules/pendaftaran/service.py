@@ -350,12 +350,14 @@ def upload_pembayaran_service(pendaftaran_id, user_id, file):
     )
 
     pendaftaran.status_pembayaran = "pending"
+    pendaftaran.status = "pending"
 
     db.session.commit()
 
     return {
         "file_path": file_url,
-        "status_pembayaran": pendaftaran.status_pembayaran
+        "status_pembayaran": pendaftaran.status_pembayaran,
+        "status": pendaftaran.status
     }
 
 FOLIO = (210*mm, 330*mm)

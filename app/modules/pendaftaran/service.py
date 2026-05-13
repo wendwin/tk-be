@@ -36,12 +36,23 @@ def get_or_create_alamat(data):
         kode_pos=data.get("kode_pos"),
     ).first() or Alamat(**data)
 
-def get_all(page=1, per_page=10, search=None):
+def get_all(page=1, per_page=10, search=None, status=None, status_pembayaran=None):
+    
     query = Pendaftaran.query.join(PesertaDidik)
 
     if search:
         query = query.filter(
             PesertaDidik.nama_lengkap.ilike(f"%{search}%")
+        )
+    
+    if status:
+        query = query.filter(
+            Pendaftaran.status == status
+        )
+
+    if status_pembayaran:
+        query = query.filter(
+            Pendaftaran.status_pembayaran == status_pembayaran
         )
 
     return query.paginate(page=page, per_page=per_page, error_out=False)

@@ -21,9 +21,12 @@ bp_pendaftaran = Blueprint('pendaftaran', __name__)
 def index():
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 10, type=int)
+    
     search = request.args.get('search')
+    status = request.args.get('status')
+    status_pembayaran = request.args.get('status_pembayaran')
 
-    pagination = get_all(page, per_page, search)
+    pagination = get_all(page, per_page, search, status, status_pembayaran  )
 
     schema = PendaftaranListSchema(many=True)
     data = schema.dump(pagination.items)

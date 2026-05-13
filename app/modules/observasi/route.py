@@ -2,8 +2,24 @@ import os
 from flask import Blueprint, request
 from app.models.observasi.gpph import GPPHPertanyaan
 from ..pendaftaran.schema import PendaftaranSchema
-from .schema import  CreateKPSPPertanyaanSchema, UpdateKPSPPertanyaanSchema,CreateGPPHSchema, CreateKPSPSchema
-from .service import set_jadwal_observasi, update_status_observasi,create_gpph, get_gpph_result, get_kpsp_pertanyaan_by_pendaftaran, create_kpsp, get_kpsp_result, get_all_kpsp_pertanyaan_service, get_detail_kpsp_pertanyaan, create_kpsp_pertanyaan, update_kpsp_pertanyaan, delete_kpsp_pertanyaan
+from .schema import CreateGPPHPertanyaanSchema, UpdateGPPHPertanyaanSchema, CreateKPSPPertanyaanSchema, UpdateKPSPPertanyaanSchema, CreateGPPHSchema, CreateKPSPSchema
+from .service import (
+set_jadwal_observasi, 
+update_status_observasi, 
+get_all_gpph_pertanyaan, 
+get_detail_gpph_pertanyaan, 
+create_gpph_pertanyaan, 
+update_gpph_pertanyaan, 
+delete_gpph_pertanyaan, 
+create_gpph, get_gpph_result, 
+get_kpsp_pertanyaan_by_pendaftaran, 
+create_kpsp, get_kpsp_result, 
+get_all_kpsp_pertanyaan_service, 
+get_detail_kpsp_pertanyaan, 
+create_kpsp_pertanyaan, 
+update_kpsp_pertanyaan, 
+delete_kpsp_pertanyaan
+)
 
 from flask import Blueprint, jsonify, request
 from app.utils.decorators import role_required
@@ -51,35 +67,137 @@ def update_status(id):
 
     except Exception as e:
         return error_response(str(e), 500)
-    
 
-# get pertanyaan gpph
+
+""" GPPH """
+# get all master pertanyaan gpph
 @bp_observasi.route('/gpph/pertanyaan', methods=['GET'])
 @role_required('admin', 'guru')
-def get_pertanyaan():
+def get_all_gpph_pertanyaan_route():
+    try:
+        result = get_all_gpph_pertanyaan()
 
-    pertanyaan = (
-        GPPHPertanyaan.query
-        .order_by(GPPHPertanyaan.nomor.asc())
-        .all()
-    )
+        return success_response(
+            message='Berhasil mengambil master pertanyaan GPPH',
+            data=result
+        )
 
-    result = []
+    except Exception as e:
+        return error_response(
+            message='Terjadi kesalahan',
+            errors=str(e),
+            code=500
+        )
 
-    for item in pertanyaan:
-        result.append({
-            'id': item.id,
-            'nomor': item.nomor,
-            'pertanyaan': item.pertanyaan
-        })
+# detail master pertanyaan gpph
+@bp_observasi.route('/gpph/pertanyaan/<int:id>', methods=['GET'])
+@role_required('admin', 'guru')
+def detail_gpph_pertanyaan_route(id):
+    try:
+        result = get_detail_gpph_pertanyaan(id)
 
-    return success_response(
-        message='Berhasil mengambil pertanyaan GPPH',
-        data=result
-    )
+        return success_response(
+            message='Berhasil mengambil detail pertanyaan GPPH',
+            data=result
+        )
 
+    except ValueError as e:
+        return error_response(
+            message=str(e),
+            code=404
+        )
 
-# create/update jawaban gpph
+    except Exception as e:
+        return error_response(
+            message='Terjadi kesalahan',
+            errors=str(e),
+            code=500
+        )
+
+# create master pertanyaan gpph
+@bp_observasi.route('/gpph/pertanyaan', methods=['POST'])
+@role_required('admin')
+def store_gpph_pertanyaan():
+    try:
+        schema = CreateGPPHPertanyaanSchema()
+        data = schema.load(request.json)
+        pertanyaan = create_gpph_pertanyaan(data)
+
+        return success_response(
+            message='Pertanyaan GPPH berhasil dibuat',
+            data={
+                'id': pertanyaan.id
+            },
+            code=201
+        )
+
+    except ValueError as e:
+        return error_response(
+            message=str(e),
+            code=422
+        )
+    
+    except Exception as e:
+        return error_response(
+            message='Terjadi kesalahan',
+            errors=str(e),
+            code=500
+        )
+
+# update master pertanyaan gpph
+@bp_observasi.route('/gpph/pertanyaan/<int:id>', methods=['PUT'])
+@role_required('admin')
+def update_gpph_pertanyaan_route(id):
+    try:
+        schema = UpdateGPPHPertanyaanSchema()
+        data = schema.load(request.json)
+        pertanyaan = update_gpph_pertanyaan(id, data)
+
+        return success_response(
+            message='Pertanyaan GPPH berhasil diupdate',
+            data={
+                'id': pertanyaan.id
+            }
+        )
+
+    except ValueError as e:
+        return error_response(
+            message=str(e),
+            code=422
+        )
+
+    except Exception as e:
+        return error_response(
+            message='Terjadi kesalahan',
+            errors=str(e),
+            code=500
+        )
+
+# delete master pertanyaan gpph
+@bp_observasi.route('/gpph/pertanyaan/<int:id>', methods=['DELETE'])
+@role_required('admin')
+def delete_gpph_pertanyaan_route(id):
+    try:
+        delete_gpph_pertanyaan(id)
+
+        return success_response(
+            message='Pertanyaan GPPH berhasil dihapus'
+        )
+
+    except ValueError as e:
+        return error_response(
+            message=str(e),
+            code=404
+        )
+
+    except Exception as e:
+        return error_response(
+            message='Terjadi kesalahan',
+            errors=str(e),
+            code=500
+        )    
+
+# create jawaban gpph
 @bp_observasi.route('/gpph', methods=['POST'])
 @role_required('admin', 'guru')
 def store_gpph():
@@ -108,7 +226,6 @@ def store_gpph():
             code=500
         )
 
-
 # detail hasil gpph
 @bp_observasi.route('/gpph/<int:pendaftaran_id>', methods=['GET'])
 @role_required('admin', 'guru')
@@ -135,6 +252,8 @@ def detail_gpph(pendaftaran_id):
         )
 
 
+
+""" KPSP """
 # get all master pertanyaan kpsp
 @bp_observasi.route('/kpsp/pertanyaan', methods=['GET'])
 @role_required('admin', 'guru')
@@ -153,7 +272,6 @@ def get_all_kpsp_pertanyaan():
             errors=str(e),
             code=500
         )
-
 
 # detail master pertanyaan kpsp
 @bp_observasi.route('/kpsp/pertanyaan/<int:id>', methods=['GET'])
@@ -180,7 +298,6 @@ def detail_kpsp_pertanyaan(id):
             code=500
         )
 
-
 # create master pertanyaan kpsp
 @bp_observasi.route('/kpsp/pertanyaan', methods=['POST'])
 @role_required('admin')
@@ -204,7 +321,6 @@ def store_kpsp_pertanyaan():
             errors=str(e),
             code=500
         )
-
 
 # update master pertanyaan kpsp
 @bp_observasi.route('/kpsp/pertanyaan/<int:id>', methods=['PUT'])
@@ -259,8 +375,9 @@ def delete_kpsp_pertanyaan_route(id):
             code=500
         )
 
+
 # get pertanyaan kpsp berdasarkan pendaftaran
-@bp_observasi.route('/kpsp/pertanyaan/<int:pendaftaran_id>',methods=['GET'])
+@bp_observasi.route('/kpsp/soal/<int:pendaftaran_id>', methods=['GET'])
 @role_required('admin')
 def get_kpsp_pertanyaan(pendaftaran_id):
     try:

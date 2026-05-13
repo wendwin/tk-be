@@ -1,6 +1,13 @@
 from marshmallow import Schema, fields, validate
 
+class CreateGPPHPertanyaanSchema(Schema):
+    nomor = fields.Integer(required=True)
+    pertanyaan = fields.String(required=True)
 
+class UpdateGPPHPertanyaanSchema(Schema):
+    nomor = fields.Integer(required=True)
+    pertanyaan = fields.String(required=True)
+    
 class GPPHJawabanItemSchema(Schema):
     pertanyaan_id = fields.Integer(required=True)
 
@@ -11,7 +18,6 @@ class GPPHJawabanItemSchema(Schema):
 
 class CreateGPPHSchema(Schema):
     pendaftaran_id = fields.Integer(required=True)
-
     jawaban = fields.List(
         fields.Nested(GPPHJawabanItemSchema),
         required=True,

@@ -1,5 +1,5 @@
 from app.models.pendaftaran import Pendaftaran
-from app.models.observasi.gpph import GPPHJawaban
+from app.models.observasi.gpph import GPPHPertanyaan, GPPHJawaban
 from datetime import date
 from app.models.observasi.kpsp import KPSPPertanyaan, KPSPJawaban
 from app.extensions import db
@@ -58,6 +58,110 @@ def update_status_observasi(id, status):
 
     db.session.commit()
     return pendaftaran
+
+def get_all_gpph_pertanyaan():
+
+    pertanyaan = (
+        GPPHPertanyaan.query
+        .order_by(GPPHPertanyaan.nomor.asc())
+        .all()
+    )
+
+    result = []
+
+    for item in pertanyaan:
+
+        result.append({
+            'id': item.id,
+            'nomor': item.nomor,
+            'pertanyaan': item.pertanyaan
+        })
+
+    return result
+
+
+def get_detail_gpph_pertanyaan(id):
+
+    pertanyaan = GPPHPertanyaan.query.get(id)
+
+    if not pertanyaan:
+        raise ValueError(
+            'Pertanyaan GPPH tidak ditemukan'
+        )
+
+    return {
+        'id': pertanyaan.id,
+        'nomor': pertanyaan.nomor,
+        'pertanyaan': pertanyaan.pertanyaan
+    }
+
+
+def create_gpph_pertanyaan(data):
+
+    exists = GPPHPertanyaan.query.filter_by(
+        nomor=data['nomor']
+    ).first()
+
+    if exists:
+        raise ValueError(
+            'Nomor pertanyaan sudah digunakan'
+        )
+
+    pertanyaan = GPPHPertanyaan(
+        nomor=data['nomor'],
+        pertanyaan=data['pertanyaan']
+    )
+
+    db.session.add(pertanyaan)
+
+    db.session.commit()
+
+    return pertanyaan
+
+
+def update_gpph_pertanyaan(id, data):
+
+    pertanyaan = GPPHPertanyaan.query.get(id)
+
+    if not pertanyaan:
+        raise ValueError(
+            'Pertanyaan GPPH tidak ditemukan'
+        )
+
+    exists = (
+        GPPHPertanyaan.query
+        .filter(
+            GPPHPertanyaan.nomor == data['nomor'],
+            GPPHPertanyaan.id != id
+        )
+        .first()
+    )
+
+    if exists:
+        raise ValueError(
+            'Nomor pertanyaan sudah digunakan'
+        )
+
+    pertanyaan.nomor = data['nomor']
+    pertanyaan.pertanyaan = data['pertanyaan']
+
+    db.session.commit()
+
+    return pertanyaan
+
+
+def delete_gpph_pertanyaan(id):
+
+    pertanyaan = GPPHPertanyaan.query.get(id)
+
+    if not pertanyaan:
+        raise ValueError(
+            'Pertanyaan GPPH tidak ditemukan'
+        )
+
+    db.session.delete(pertanyaan)
+
+    db.session.commit()
 
 def create_gpph(data):
 

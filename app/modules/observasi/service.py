@@ -39,9 +39,8 @@ def set_jadwal_observasi(id, data):
 
     if not pendaftaran:
         return None
-
-    pendaftaran.tanggal_observasi = data.get("tanggal_observasi")
-    pendaftaran.jam_observasi = data.get("jam_observasi")
+    
+    pendaftaran.observasi_at = data.get("observasi_at")
     pendaftaran.status_observasi = "terjadwal"
 
     db.session.commit()

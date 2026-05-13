@@ -1,5 +1,40 @@
+from datetime import date
 import json
 from marshmallow import Schema, fields, validate, ValidationError, validates_schema
+
+from datetime import date
+
+
+class UmurMixin:
+    def calculate_umur(self, tanggal_lahir, detail=False):
+        if not tanggal_lahir:
+            return None
+
+        today = date.today()
+
+        years = today.year - tanggal_lahir.year
+        months = today.month - tanggal_lahir.month
+        days = today.day - tanggal_lahir.day
+
+        if days < 0:
+            months -= 1
+
+        if months < 0:
+            years -= 1
+            months += 12
+
+        total_months = (
+            (today.year - tanggal_lahir.year) * 12
+            + (today.month - tanggal_lahir.month)
+        )
+
+        if today.day < tanggal_lahir.day:
+            total_months -= 1
+
+        if detail:
+            return f"{years} Tahun {months} Bulan ({total_months} Bulan)"
+
+        return years
 
 class AlamatSchema(Schema):
     
@@ -224,7 +259,7 @@ class TahunAjaranSchema(Schema):
             return None
         return f"{obj.tahun_mulai}/{obj.tahun_selesai}"
 
-class PendaftaranSchema(Schema):
+class PendaftaranSchema(Schema, UmurMixin):
     id = fields.Int(dump_only=True)
     no_pendaftaran = fields.Str(dump_only=True)
     created_at = fields.DateTime(dump_only=True)
@@ -236,6 +271,7 @@ class PendaftaranSchema(Schema):
         dump_only=True,
         validate=validate.OneOf(['unpaid','pending','paid','failed'])
     )
+    umur = fields.Method("get_umur", dump_only=True)
     jenis = fields.Str(
         required=True,
         validate=validate.OneOf(['tk', 'kb'])
@@ -268,20 +304,33 @@ class PendaftaranSchema(Schema):
         validate=validate.OneOf(['belum','terjadwal','hadir','tidak_hadir'])
     )
 
+    def get_umur(self, obj):
+        if not obj or not obj.peserta:
+            return None
 
-class PendaftaranListSchema(Schema):
+        return self.calculate_umur(
+            obj.peserta.tanggal_lahir,
+            detail=True
+        )
+
+
+class PendaftaranListSchema(Schema, UmurMixin):
     id = fields.Int(dump_only=True)
     no_pendaftaran = fields.Str(dump_only=True)
-    created_at = fields.DateTime(dump_only=True)
 
+    umur = fields.Method("get_umur", dump_only=True)
     jenis = fields.Str(dump_only=True)
     program = fields.Str(dump_only=True)
 
     status = fields.Str(dump_only=True)
     status_pembayaran = fields.Str(dump_only=True)
 
+    observasi_at = fields.DateTime(allow_none=True)
+    status_observasi = fields.Str(dump_only=True)
+
     nama_lengkap = fields.Method("get_nama", dump_only=True)
     tahun_ajaran = fields.Method("get_tahun", dump_only=True)
+    created_at = fields.DateTime(dump_only=True)
 
     def get_nama(self, obj):
         if not obj or not obj.peserta:
@@ -292,3 +341,12 @@ class PendaftaranListSchema(Schema):
         if not obj or not obj.tahun_ajaran:
             return None
         return getattr(obj.tahun_ajaran, "label", None)
+    
+    def get_umur(self, obj):
+        if not obj or not obj.peserta:
+            return None
+
+        return self.calculate_umur(
+            obj.peserta.tanggal_lahir,
+            detail=True
+        )

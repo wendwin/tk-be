@@ -2,8 +2,8 @@ import os
 from flask import Blueprint, request
 from app.models.observasi.gpph import GPPHPertanyaan
 from ..pendaftaran.schema import PendaftaranSchema
-from .schema import CreateGPPHSchema
-from .service import set_jadwal_observasi, update_status_observasi,create_gpph, get_gpph_result
+from .schema import  CreateKPSPPertanyaanSchema, UpdateKPSPPertanyaanSchema,CreateGPPHSchema, CreateKPSPSchema
+from .service import set_jadwal_observasi, update_status_observasi,create_gpph, get_gpph_result, get_kpsp_pertanyaan_by_pendaftaran, create_kpsp, get_kpsp_result, get_all_kpsp_pertanyaan_service, get_detail_kpsp_pertanyaan, create_kpsp_pertanyaan, update_kpsp_pertanyaan, delete_kpsp_pertanyaan
 
 from flask import Blueprint, jsonify, request
 from app.utils.decorators import role_required
@@ -11,6 +11,7 @@ from app.utils.responses import success_response, error_response
 
 bp_observasi = Blueprint('observasi', __name__)
 
+# set jadwal observasi
 @bp_observasi.route('/<int:id>', methods=['PUT'])
 @role_required('admin')
 def set_observasi(id):
@@ -32,6 +33,7 @@ def set_observasi(id):
     except Exception as e:
         return error_response(str(e), 500)
     
+# update status observasi
 @bp_observasi.route('/<int:id>/status', methods=['PUT'])
 @role_required('admin', 'guru')
 def update_status(id):
@@ -51,7 +53,7 @@ def update_status(id):
         return error_response(str(e), 500)
     
 
-# get pertanyaan
+# get pertanyaan gpph
 @bp_observasi.route('/gpph/pertanyaan', methods=['GET'])
 @role_required('admin', 'guru')
 def get_pertanyaan():
@@ -77,7 +79,7 @@ def get_pertanyaan():
     )
 
 
-# create/update jawaban
+# create/update jawaban gpph
 @bp_observasi.route('/gpph', methods=['POST'])
 @role_required('admin', 'guru')
 def store_gpph():
@@ -107,7 +109,7 @@ def store_gpph():
         )
 
 
-# detail hasil
+# detail hasil gpph
 @bp_observasi.route('/gpph/<int:pendaftaran_id>', methods=['GET'])
 @role_required('admin', 'guru')
 def detail_gpph(pendaftaran_id):
@@ -116,6 +118,210 @@ def detail_gpph(pendaftaran_id):
 
         return success_response(
             message='Berhasil mengambil hasil GPPH',
+            data=result
+        )
+
+    except ValueError as e:
+        return error_response(
+            message=str(e),
+            code=404
+        )
+
+    except Exception as e:
+        return error_response(
+            message='Terjadi kesalahan',
+            errors=str(e),
+            code=500
+        )
+
+
+# get all master pertanyaan kpsp
+@bp_observasi.route('/kpsp/pertanyaan', methods=['GET'])
+@role_required('admin', 'guru')
+def get_all_kpsp_pertanyaan():
+    try:
+        result = get_all_kpsp_pertanyaan_service()
+
+        return success_response(
+            message='Berhasil mengambil master pertanyaan KPSP',
+            data=result
+        )
+
+    except Exception as e:
+        return error_response(
+            message='Terjadi kesalahan',
+            errors=str(e),
+            code=500
+        )
+
+
+# detail master pertanyaan kpsp
+@bp_observasi.route('/kpsp/pertanyaan/<int:id>', methods=['GET'])
+@role_required('admin', 'guru')
+def detail_kpsp_pertanyaan(id):
+    try:
+        result = get_detail_kpsp_pertanyaan(id)
+
+        return success_response(
+            message='Berhasil mengambil detail pertanyaan KPSP',
+            data=result
+        )
+
+    except ValueError as e:
+        return error_response(
+            message=str(e),
+            code=404
+        )
+
+    except Exception as e:
+        return error_response(
+            message='Terjadi kesalahan',
+            errors=str(e),
+            code=500
+        )
+
+
+# create master pertanyaan kpsp
+@bp_observasi.route('/kpsp/pertanyaan', methods=['POST'])
+@role_required('admin')
+def store_kpsp_pertanyaan():
+    try:
+        schema = CreateKPSPPertanyaanSchema()
+        data = schema.load(request.json)
+        pertanyaan = create_kpsp_pertanyaan(data)
+
+        return success_response(
+            message='Pertanyaan KPSP berhasil dibuat',
+            data={
+                'id': pertanyaan.id
+            },
+            code=201
+        )
+
+    except Exception as e:
+        return error_response(
+            message='Terjadi kesalahan',
+            errors=str(e),
+            code=500
+        )
+
+
+# update master pertanyaan kpsp
+@bp_observasi.route('/kpsp/pertanyaan/<int:id>', methods=['PUT'])
+@role_required('admin')
+def update_kpsp_pertanyaan_route(id):
+    try:
+        schema = UpdateKPSPPertanyaanSchema()
+        data = schema.load(request.json)
+        pertanyaan = update_kpsp_pertanyaan(id, data)
+
+        return success_response(
+            message='Pertanyaan KPSP berhasil diupdate',
+            data={
+                'id': pertanyaan.id
+            }
+        )
+
+    except ValueError as e:
+        return error_response(
+            message=str(e),
+            code=404
+        )
+
+    except Exception as e:
+        return error_response(
+            message='Terjadi kesalahan',
+            errors=str(e),
+            code=500
+        )
+
+# delete master pertanyaan kpsp
+@bp_observasi.route('/kpsp/pertanyaan/<int:id>', methods=['DELETE'])
+@role_required('admin')
+def delete_kpsp_pertanyaan_route(id):
+    try:
+        delete_kpsp_pertanyaan(id)
+
+        return success_response(
+            message='Pertanyaan KPSP berhasil dihapus'
+        )
+
+    except ValueError as e:
+        return error_response(
+            message=str(e),
+            code=404
+        )
+
+    except Exception as e:
+        return error_response(
+            message='Terjadi kesalahan',
+            errors=str(e),
+            code=500
+        )
+
+# get pertanyaan kpsp berdasarkan pendaftaran
+@bp_observasi.route('/kpsp/pertanyaan/<int:pendaftaran_id>',methods=['GET'])
+@role_required('admin')
+def get_kpsp_pertanyaan(pendaftaran_id):
+    try:
+        result = get_kpsp_pertanyaan_by_pendaftaran(pendaftaran_id)
+
+        return success_response(
+            message='Berhasil mengambil pertanyaan KPSP',
+            data=result
+        )
+
+    except ValueError as e:
+        return error_response(
+            message=str(e),
+            code=404
+        )
+
+    except Exception as e:
+        return error_response(
+            message='Terjadi kesalahan',
+            errors=str(e),
+            code=500
+        )
+    
+# create jawaban kpsp
+@bp_observasi.route('/kpsp', methods=['POST'])
+@role_required('admin', 'guru')
+def store_kpsp():
+    try:
+        schema = CreateKPSPSchema()
+        data = schema.load(request.json)
+
+        create_kpsp(data)
+
+        return success_response(
+            message='Observasi KPSP berhasil disimpan',
+            code=201
+        )
+
+    except ValueError as e:
+        return error_response(
+            message=str(e),
+            code=404
+        )
+
+    except Exception as e:
+        return error_response(
+            message='Terjadi kesalahan',
+            errors=str(e),
+            code=500
+        )
+    
+# detail hasil kpsp
+@bp_observasi.route('/kpsp/<int:pendaftaran_id>',methods=['GET'])
+@role_required('admin')
+def detail_kpsp(pendaftaran_id):
+    try:
+        result = get_kpsp_result(
+            pendaftaran_id
+        )
+        return success_response(
+            message='Berhasil mengambil hasil KPSP',
             data=result
         )
 

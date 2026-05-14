@@ -21,29 +21,31 @@ update_kpsp_pertanyaan,
 delete_kpsp_pertanyaan
 )
 
-from flask import Blueprint, jsonify, request
 from app.utils.decorators import role_required
 from app.utils.responses import success_response, error_response
 
 bp_observasi = Blueprint('observasi', __name__)
 
 # set jadwal observasi
-@bp_observasi.route('/<int:id>', methods=['PUT'])
+@bp_observasi.route('/set-jadwal', methods=['PUT'])
 @role_required('admin')
-def set_observasi(id):
-
+def set_observasi():
     try:
         data = request.get_json()
 
-        pendaftaran = set_jadwal_observasi(id, data)
+        ids = data.get("pendaftaran_ids", [])
+        observasi_at = data.get("observasi_at")
 
-        if not pendaftaran:
-            return error_response("Data tidak ditemukan", 404)
+        if not ids:
+            return error_response("Pendaftaran wajib dipilih", 400)
+        
+        if not observasi_at:
+            return error_response("Jadwal observasi wajib diisi", 400)
 
-        schema = PendaftaranSchema()
+        set_jadwal_observasi(ids, observasi_at)
+
         return success_response(
-            message="Jadwal observasi berhasil diset",
-            data=schema.dump(pendaftaran)
+            message="Jadwal observasi berhasil diset"
         )
 
     except Exception as e:

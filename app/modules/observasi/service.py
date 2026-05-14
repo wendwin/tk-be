@@ -34,17 +34,18 @@ def get_kpsp_group_usia(bulan):
 
     return 72
 
-def set_jadwal_observasi(id, data):
-    pendaftaran = Pendaftaran.query.get(id)
+def set_jadwal_observasi(ids, observasi_at):
+    pendaftaran_list = Pendaftaran.query.filter(
+        Pendaftaran.id.in_(ids)
+    ).all()
 
-    if not pendaftaran:
-        return None
-    
-    pendaftaran.observasi_at = data.get("observasi_at")
-    pendaftaran.status_observasi = "terjadwal"
+    for pendaftaran in pendaftaran_list:
+        pendaftaran.observasi_at = observasi_at
+        pendaftaran.status_observasi = "terjadwal"
 
     db.session.commit()
-    return pendaftaran
+
+    return pendaftaran_list
 
 
 def update_status_observasi(id, status):

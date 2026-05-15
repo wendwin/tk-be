@@ -8,56 +8,21 @@ from app.extensions import db
 def calculate_age_in_months(tanggal_lahir):
     today = date.today()
 
-    years = today.year - tanggal_lahir.year
-    months = today.month - tanggal_lahir.month
-    days = today.day - tanggal_lahir.day
+    months = (
+        (today.year - tanggal_lahir.year) * 12
+        + (today.month - tanggal_lahir.month)
+    )
 
-    total_months = (years * 12) + months
+    if today.day < tanggal_lahir.day:
+        months -= 1
 
-    # jika hari negatif berarti bulan belum penuh
-    if days < 0:
-        total_months -= 1
-
-        # hitung sisa hari
-        previous_month = today.month - 1 or 12
-        previous_year = today.year if today.month != 1 else today.year - 1
-
-        if previous_month in [1, 3, 5, 7, 8, 10, 12]:
-            days_in_prev_month = 31
-        elif previous_month in [4, 6, 9, 11]:
-            days_in_prev_month = 30
-        else:
-            # februari
-            is_leap = (
-                previous_year % 4 == 0
-                and (
-                    previous_year % 100 != 0
-                    or previous_year % 400 == 0
-                )
-            )
-
-            days_in_prev_month = 29 if is_leap else 28
-
-        days += days_in_prev_month
-
-    # pembulatan SDIDTK
-    if days > 16:
-        total_months += 1
-
-    return total_months
+    return months
 
 def get_kpsp_group_usia(bulan):
-    kelompok = [
-        24,
-        30,
-        36,
-        42,
-        48,
-        54,
-        60,
-        66,
-        72
-    ]
+    kelompok = [24, 30, 36, 42, 48, 54, 60, 66, 72]
+
+    if bulan < 24:
+        return None
 
     result = kelompok[0]
 

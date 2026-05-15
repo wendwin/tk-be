@@ -60,7 +60,6 @@ def update_status_observasi(id, status):
     return pendaftaran
 
 def get_all_gpph_pertanyaan():
-
     pertanyaan = (
         GPPHPertanyaan.query
         .order_by(GPPHPertanyaan.nomor.asc())
@@ -81,7 +80,6 @@ def get_all_gpph_pertanyaan():
 
 
 def get_detail_gpph_pertanyaan(id):
-
     pertanyaan = GPPHPertanyaan.query.get(id)
 
     if not pertanyaan:
@@ -97,7 +95,6 @@ def get_detail_gpph_pertanyaan(id):
 
 
 def create_gpph_pertanyaan(data):
-
     exists = GPPHPertanyaan.query.filter_by(
         nomor=data['nomor']
     ).first()
@@ -120,7 +117,6 @@ def create_gpph_pertanyaan(data):
 
 
 def update_gpph_pertanyaan(id, data):
-
     pertanyaan = GPPHPertanyaan.query.get(id)
 
     if not pertanyaan:
@@ -151,7 +147,6 @@ def update_gpph_pertanyaan(id, data):
 
 
 def delete_gpph_pertanyaan(id):
-
     pertanyaan = GPPHPertanyaan.query.get(id)
 
     if not pertanyaan:
@@ -163,20 +158,18 @@ def delete_gpph_pertanyaan(id):
 
     db.session.commit()
 
-def create_gpph(data):
-
-    pendaftaran = Pendaftaran.query.get(
-        data['pendaftaran_id']
-    )
+def create_gpph(pendaftaran_id,data):
+    pendaftaran = Pendaftaran.query.get(pendaftaran_id)
 
     if not pendaftaran:
         raise ValueError('Pendaftaran tidak ditemukan')
 
-    pendaftaran_id = data['pendaftaran_id']
-
-    GPPHJawaban.query.filter_by(
+    existing = GPPHJawaban.query.filter_by(
         pendaftaran_id=pendaftaran_id
-    ).delete()
+    ).first()
+
+    if existing:
+        raise ValueError("Observasi GPPH sudah diisi")
 
     for item in data['jawaban']:
 
@@ -192,10 +185,7 @@ def create_gpph(data):
 
 
 def get_gpph_result(pendaftaran_id):
-
-    pendaftaran = Pendaftaran.query.get(
-        pendaftaran_id
-    )
+    pendaftaran = Pendaftaran.query.get(pendaftaran_id)
 
     if not pendaftaran:
         raise ValueError('Pendaftaran tidak ditemukan')
@@ -365,20 +355,25 @@ def get_kpsp_pertanyaan_by_pendaftaran(pendaftaran_id):
         'pertanyaan': result
     }
 
-def create_kpsp(data):
-    pendaftaran = Pendaftaran.query.get(data['pendaftaran_id'])
+def create_kpsp(pendaftaran_id, data):
+    pendaftaran = Pendaftaran.query.get(pendaftaran_id)
 
     if not pendaftaran:
         raise ValueError(
             'Pendaftaran tidak ditemukan'
         )
 
-    KPSPJawaban.query.filter_by(pendaftaran_id=data['pendaftaran_id']).delete()
+    existing = KPSPJawaban.query.filter_by(
+        pendaftaran_id=pendaftaran_id
+    ).first()
+
+    if existing:
+        raise ValueError("Observasi KPSP sudah diisi")
 
     for item in data['jawaban']:
 
         jawaban = KPSPJawaban(
-            pendaftaran_id=data['pendaftaran_id'],
+            pendaftaran_id=pendaftaran_id,
             pertanyaan_id=item['pertanyaan_id'],
             jawaban=item['jawaban'],
             keterangan=item.get('keterangan'),

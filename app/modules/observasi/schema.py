@@ -17,7 +17,6 @@ class GPPHJawabanItemSchema(Schema):
     )
 
 class CreateGPPHSchema(Schema):
-    pendaftaran_id = fields.Integer(required=True)
     jawaban = fields.List(
         fields.Nested(GPPHJawabanItemSchema),
         required=True,
@@ -44,6 +43,5 @@ class KPSPJawabanItemSchema(Schema):
 
 
 class CreateKPSPSchema(Schema):
-    pendaftaran_id = fields.Integer(required=True)
     catatan = fields.String(allow_none=True)
     jawaban = fields.List(fields.Nested(KPSPJawabanItemSchema),required=True)

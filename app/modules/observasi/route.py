@@ -200,15 +200,15 @@ def delete_gpph_pertanyaan_route(id):
         )    
 
 # create jawaban gpph
-@bp_observasi.route('/gpph', methods=['POST'])
+@bp_observasi.route('/<int:pendaftaran_id>/gpph', methods=['POST'])
 @role_required('admin', 'guru')
-def store_gpph():
+def store_gpph(pendaftaran_id):
     try:
         schema = CreateGPPHSchema()
 
         data = schema.load(request.json)
 
-        create_gpph(data)
+        create_gpph(pendaftaran_id,data)
 
         return success_response(
             message='Observasi GPPH berhasil disimpan',
@@ -229,7 +229,7 @@ def store_gpph():
         )
 
 # detail hasil gpph
-@bp_observasi.route('/gpph/<int:pendaftaran_id>', methods=['GET'])
+@bp_observasi.route('/<int:pendaftaran_id>/gpph', methods=['GET'])
 @role_required('admin', 'guru')
 def detail_gpph(pendaftaran_id):
     try:
@@ -378,8 +378,8 @@ def delete_kpsp_pertanyaan_route(id):
         )
 
 
-# get pertanyaan kpsp berdasarkan pendaftaran
-@bp_observasi.route('/kpsp/soal/<int:pendaftaran_id>', methods=['GET'])
+# get pertanyaan kpsp berdasarkan usia
+@bp_observasi.route('/<int:pendaftaran_id>/kpsp/soal', methods=['GET'])
 @role_required('admin')
 def get_kpsp_pertanyaan(pendaftaran_id):
     try:
@@ -404,14 +404,14 @@ def get_kpsp_pertanyaan(pendaftaran_id):
         )
     
 # create jawaban kpsp
-@bp_observasi.route('/kpsp', methods=['POST'])
+@bp_observasi.route('/<int:pendaftaran_id>/kpsp', methods=['POST'])
 @role_required('admin', 'guru')
-def store_kpsp():
+def store_kpsp(pendaftaran_id):
     try:
         schema = CreateKPSPSchema()
         data = schema.load(request.json)
 
-        create_kpsp(data)
+        create_kpsp(pendaftaran_id, data)
 
         return success_response(
             message='Observasi KPSP berhasil disimpan',
@@ -432,7 +432,7 @@ def store_kpsp():
         )
     
 # detail hasil kpsp
-@bp_observasi.route('/kpsp/<int:pendaftaran_id>',methods=['GET'])
+@bp_observasi.route('/<int:pendaftaran_id>/kpsp',methods=['GET'])
 @role_required('admin')
 def detail_kpsp(pendaftaran_id):
     try:

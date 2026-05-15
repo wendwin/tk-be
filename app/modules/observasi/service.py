@@ -7,13 +7,44 @@ from app.extensions import db
 # helper
 def calculate_age_in_months(tanggal_lahir):
     today = date.today()
-    months = (
-        (today.year - tanggal_lahir.year) * 12
-        + today.month
-        - tanggal_lahir.month
-    )
 
-    return months
+    years = today.year - tanggal_lahir.year
+    months = today.month - tanggal_lahir.month
+    days = today.day - tanggal_lahir.day
+
+    total_months = (years * 12) + months
+
+    # jika hari negatif berarti bulan belum penuh
+    if days < 0:
+        total_months -= 1
+
+        # hitung sisa hari
+        previous_month = today.month - 1 or 12
+        previous_year = today.year if today.month != 1 else today.year - 1
+
+        if previous_month in [1, 3, 5, 7, 8, 10, 12]:
+            days_in_prev_month = 31
+        elif previous_month in [4, 6, 9, 11]:
+            days_in_prev_month = 30
+        else:
+            # februari
+            is_leap = (
+                previous_year % 4 == 0
+                and (
+                    previous_year % 100 != 0
+                    or previous_year % 400 == 0
+                )
+            )
+
+            days_in_prev_month = 29 if is_leap else 28
+
+        days += days_in_prev_month
+
+    # pembulatan SDIDTK
+    if days > 16:
+        total_months += 1
+
+    return total_months
 
 def get_kpsp_group_usia(bulan):
     kelompok = [
@@ -28,11 +59,15 @@ def get_kpsp_group_usia(bulan):
         72
     ]
 
-    for usia in kelompok:
-        if bulan <= usia:
-            return usia
+    result = kelompok[0]
 
-    return 72
+    for usia in kelompok:
+        if bulan >= usia:
+            result = usia
+        else:
+            break
+
+    return result
 
 def set_jadwal_observasi(ids, observasi_at):
     pendaftaran_list = Pendaftaran.query.filter(

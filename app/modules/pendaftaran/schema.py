@@ -6,7 +6,7 @@ from datetime import date
 
 
 class UmurMixin:
-    def calculate_umur(self, tanggal_lahir, detail=False):
+    def calculate_umur(self, tanggal_lahir, detail=False, with_days=False):
         if not tanggal_lahir:
             return None
 
@@ -19,22 +19,33 @@ class UmurMixin:
         if days < 0:
             months -= 1
 
+            prev_month = today.month - 1 or 12
+            prev_year = today.year if today.month != 1 else today.year - 1
+
+            if prev_month in [1, 3, 5, 7, 8, 10, 12]:
+                days += 31
+            elif prev_month in [4, 6, 9, 11]:
+                days += 30
+            else:
+                is_leap = (
+                    prev_year % 4 == 0
+                    and (prev_year % 100 != 0 or prev_year % 400 == 0)
+                )
+                days += 29 if is_leap else 28
+
         if months < 0:
             years -= 1
             months += 12
 
-        total_months = (
-            (today.year - tanggal_lahir.year) * 12
-            + (today.month - tanggal_lahir.month)
-        )
+        total_months = years * 12 + months
 
-        if today.day < tanggal_lahir.day:
-            total_months -= 1
+        if detail and with_days:
+            return f"{years} Tahun {months} Bulan {days} Hari ({total_months} Bulan {days} Hari)"
 
         if detail:
             return f"{years} Tahun {months} Bulan ({total_months} Bulan)"
 
-        return years
+        return f"{years} Tahun" 
 
 class AlamatSchema(Schema):
     
@@ -310,7 +321,8 @@ class PendaftaranSchema(Schema, UmurMixin):
 
         return self.calculate_umur(
             obj.peserta.tanggal_lahir,
-            detail=True
+            detail=True,
+            with_days=True
         )
 
 
@@ -346,7 +358,4 @@ class PendaftaranListSchema(Schema, UmurMixin):
         if not obj or not obj.peserta:
             return None
 
-        return self.calculate_umur(
-            obj.peserta.tanggal_lahir,
-            detail=True
-        )
+        return self.calculate_umur(obj.peserta.tanggal_lahir)

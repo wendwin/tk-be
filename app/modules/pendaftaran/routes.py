@@ -1,15 +1,17 @@
 import os
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from app.extensions import db
-from flask import Blueprint, request, redirect, send_from_directory, json
+from flask import Blueprint, request, redirect, send_from_directory, json, current_app, send_file
 
 from app.models.pendaftaran.tahun_ajaran import TahunAjaran
 from .schema import PendaftaranSchema, PendaftaranListSchema, TahunAjaranSchema
-from .service import get_all, create, get_by_id, get_by_user_id, upload_berkas_service,upload_pembayaran_service, update_pendaftaran_service
+from .service import get_all, create, get_by_id, get_by_user_id, upload_berkas_service,upload_pembayaran_service, update_pendaftaran_service, generate_surat_pernyataan
 from app.utils.decorators import role_required
 from app.utils.responses import success_response, error_response
 from app.utils.pagination import format_pagination
 from app.utils.formulir_pdf import generate_formulir_pdf
+
+import traceback
 
 bp_pendaftaran = Blueprint('pendaftaran', __name__)
 
@@ -19,9 +21,12 @@ bp_pendaftaran = Blueprint('pendaftaran', __name__)
 def index():
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 10, type=int)
+    
     search = request.args.get('search')
+    status = request.args.get('status')
+    status_pembayaran = request.args.get('status_pembayaran')
 
-    pagination = get_all(page, per_page, search)
+    pagination = get_all(page, per_page, search, status, status_pembayaran  )
 
     schema = PendaftaranListSchema(many=True)
     data = schema.dump(pagination.items)
@@ -87,7 +92,8 @@ def update(id):
             return error_response("Data tidak ditemukan", code=404)
 
         schema = PendaftaranSchema()
-        errors = schema.validate(data, partial=True) 
+        errors = schema.validate(data, partial=True)
+
         if errors:
             return error_response("Validation error", errors=errors, code=422)
 
@@ -242,18 +248,41 @@ def download_formulir(id):
         as_attachment=False
     )
 
+# download surat pernyataan
+@bp_pendaftaran.route('/download-surat-pernyataan', methods=['GET'])
+@role_required('orang_tua')
+def download_surat_pernyataan():
+    try:
+        user_id = get_jwt_identity()
+
+        file_path = generate_surat_pernyataan(user_id)
+
+        return send_file(
+            file_path,
+            as_attachment=True,
+            download_name='surat_pernyataan.pdf'
+        )
+
+    except Exception as e:
+        return error_response(str(e), code=500)
+    
 # me
 @bp_pendaftaran.route('/me', methods=['GET'])
 @role_required('admin', 'orang_tua')
 def get_me():
     user_id = get_jwt_identity()
 
-    pendaftaran = get_by_user_id(user_id) 
+    pendaftaran = get_by_user_id(user_id)
 
     if not pendaftaran:
-        return success_response(data=None, message="Belum ada pendaftaran", code=200)
+        return success_response(
+            data=[],
+            message="Belum ada pendaftaran",
+            code=200
+        )
 
-    schema = PendaftaranSchema()
+    schema = PendaftaranSchema(many=True)
+
     return success_response(
         data=schema.dump(pendaftaran),
         message="Data pendaftaran berhasil diambil",

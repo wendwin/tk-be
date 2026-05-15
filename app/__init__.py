@@ -2,8 +2,10 @@ from flask import Flask
 from .config import Config
 from .extensions import db, jwt, migrate, mail, limiter
 from flask_cors import CORS
+
 from app import models
 from app.utils.errors import init_error_handlers
+from app.utils.logger import init_logger
 from app.commands.db_command import register_db_command
 
 def create_app():
@@ -15,6 +17,8 @@ def create_app():
     migrate.init_app(app, db)
     mail.init_app(app)
     # limiter.init_app(app)
+    init_logger(app)
+    
     init_error_handlers(app)
     register_db_command(app)
     CORS(app,

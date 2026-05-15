@@ -1,140 +1,361 @@
-from marshmallow import Schema, fields, validate
+from datetime import date
+import json
+from marshmallow import Schema, fields, validate, ValidationError, validates_schema
+
+from datetime import date
+
+
+class UmurMixin:
+    def calculate_umur(self, tanggal_lahir, detail=False, with_days=False):
+        if not tanggal_lahir:
+            return None
+
+        today = date.today()
+
+        years = today.year - tanggal_lahir.year
+        months = today.month - tanggal_lahir.month
+        days = today.day - tanggal_lahir.day
+
+        if days < 0:
+            months -= 1
+
+            prev_month = today.month - 1 or 12
+            prev_year = today.year if today.month != 1 else today.year - 1
+
+            if prev_month in [1, 3, 5, 7, 8, 10, 12]:
+                days += 31
+            elif prev_month in [4, 6, 9, 11]:
+                days += 30
+            else:
+                is_leap = (
+                    prev_year % 4 == 0
+                    and (prev_year % 100 != 0 or prev_year % 400 == 0)
+                )
+                days += 29 if is_leap else 28
+
+        if months < 0:
+            years -= 1
+            months += 12
+
+        total_months = years * 12 + months
+
+        if detail and with_days:
+            return f"{years} Tahun {months} Bulan {days} Hari ({total_months} Bulan {days} Hari)"
+
+        if detail:
+            return f"{years} Tahun {months} Bulan ({total_months} Bulan)"
+
+        return f"{years} Tahun" 
 
 class AlamatSchema(Schema):
-    alamat_lengkap = fields.Str()
-    rt = fields.Str()
-    rw = fields.Str()
-    desa = fields.Str()
-    kecamatan = fields.Str()
-    kabupaten = fields.Str()
-    kode_pos = fields.Str()
+    
+    alamat_lengkap = fields.Str(required=True, validate=validate.Length(min=5, max=255))
+    rt = fields.Str(required=True,validate=[
+            validate.Length(max=3),
+            validate.Regexp(r'^\d+$', error="RT harus angka")
+        ])
+    rw = fields.Str(required=True,validate=[
+            validate.Length(max=3),
+            validate.Regexp(r'^\d+$', error="RW harus angka")
+        ])
+    kelurahan = fields.Str(required=True)
+    kecamatan = fields.Str(required=True)
+    kabupaten = fields.Str(required=True)
+    kode_pos = fields.Str(required=True, validate=[
+            validate.Length(equal=5),
+            validate.Regexp(r'^\d+$', error="Kode pos harus angka")
+        ])
 
 class OrangTuaSchema(Schema):
-    tipe = fields.Str()
-    nama = fields.Str()
-    tempat_lahir = fields.Str()
-    tanggal_lahir = fields.Date()
-    nik = fields.Str()
-    pendidikan = fields.Str()
-    pekerjaan = fields.Str()
-    pendapatan = fields.Float()
-    alamat_kantor = fields.Str()
-    no_hp = fields.Str()
-    email = fields.Email()
-
-    alamat = fields.Nested(AlamatSchema)
+    tipe = fields.Str(
+        required=True,
+        validate=validate.OneOf(['ayah', 'ibu', 'wali'])
+    )
+    nama = fields.Str(required=True, validate=validate.Length(min=1, max=150))
+    tempat_lahir = fields.Str(required=True, validate=validate.Length(min=1, max=100))
+    tanggal_lahir = fields.Date(required=True)
+    nik = fields.Str(
+        required=True,
+        validate=[
+            validate.Length(equal=16),
+            validate.Regexp(r'^\d{16}$', error='NIK harus 16 digit angka')
+        ]
+    )
+    pendidikan = fields.Str(
+        required=True,
+        validate=validate.OneOf(['SD','SMP','SMA','D1','D2','D3','D4','S1','S2','S3'])
+    )
+    pekerjaan = fields.Str(required=True, validate=validate.Length(min=1, max=50))
+    pendapatan = fields.Decimal(
+        as_string=True,
+        required=False,
+        allow_none=True
+    )
+    alamat_kantor = fields.Str(
+        required=False,
+        allow_none=True,
+        validate=validate.Length(max=255)
+    )
+    no_hp = fields.Str(
+        required=True,
+        validate=[
+            validate.Length(min=10, max=20),
+            validate.Regexp(r'^\d+$', error='No HP hanya boleh angka')
+        ]
+    )
+    email = email = fields.Email(required=True)
+    alamat = fields.Nested(AlamatSchema, dump_only=True)
 
 class KesehatanSchema(Schema):
-    berat_badan = fields.Float()
-    tinggi_badan = fields.Float()
-    lingkar_kepala = fields.Float()
-    golongan_darah = fields.Str()
-    riwayat_penyakit = fields.Str()
-    alergi = fields.Str()
-    kebutuhan_khusus = fields.Str()
+    berat_badan = fields.Float(
+        required=True,
+        validate=validate.Range(min=0, max=300)
+    )
+    tinggi_badan = fields.Float(
+        required=True,
+        validate=validate.Range(min=0, max=250)
+    )
+    lingkar_kepala = fields.Float(
+        required=True,
+        validate=validate.Range(min=0, max=100)
+    )
+    golongan_darah = fields.Str(
+        required=True,
+        validate=validate.OneOf(['A', 'B', 'AB', 'O'])
+    )
+    riwayat_penyakit = fields.Str(required=True)
+    alergi = fields.Str(required=True)
+    kebutuhan_khusus = fields.List(
+        fields.Str(),
+        required=True,
+        validate=validate.Length(min=1)
+    )
 
 class InformasiSchema(Schema):
-    tinggal_dengan = fields.Str()
-    jarak_sekolah = fields.Float()
-    waktu_tempuh = fields.Str()
-    kendaraan = fields.Str()
-    pernah_sekolah = fields.Boolean()
-    nama_sekolah = fields.Str()
-    npsn = fields.Str()
-    nisn = fields.Str()
-    bakat = fields.Str()
-    hobi = fields.Str()
-    cita_cita = fields.Str()
+    tinggal_dengan = fields.Str(
+        required=True,
+        validate=validate.OneOf(["orang tua", "wali", "asrama"])
+    )
+    jarak_sekolah = fields.Float(
+        required=True,
+        validate=validate.Range(min=0)
+    )
+    waktu_tempuh = fields.Str(
+        required=True,
+        validate=validate.Length(max=50)
+    )
+    kendaraan = fields.Str(
+        required=True,
+        validate=validate.OneOf(["jalan kaki","sepeda","sepeda motor","mobil","angkutan umum"
+        ])
+    )
+    pernah_sekolah = fields.Boolean(required=True)
+
+    nama_sekolah = fields.Str(allow_none=True, validate=validate.Length(max=150))
+    npsn = fields.Str(allow_none=True, validate=validate.Length(max=20))
+    nisn = fields.Str(allow_none=True, validate=validate.Length(max=20))
+
+    bakat = fields.Str(allow_none=True, validate=validate.Length(max=100))
+    hobi = fields.Str(allow_none=True, validate=validate.Length(max=100))
+    cita_cita = fields.Str(allow_none=True, validate=validate.Length(max=100))
+    sumber_informasi = fields.Str(allow_none=True, validate=validate.Length(max=100))
+
+    @validates_schema
+    def validate_kondisional(self, data, **kwargs):
+        if data.get("pernah_sekolah"):
+            required_if_true = ["nama_sekolah", "npsn", "nisn"]
+
+            for field in required_if_true:
+                if not data.get(field):
+                    raise ValidationError(
+                        {field: "Wajib diisi jika pernah sekolah"}
+                    )
 
 class PesertaSchema(Schema):
-    nama_lengkap = fields.Str()
-    nama_panggilan = fields.Str()
-    tempat_lahir = fields.Str()
-    tanggal_lahir = fields.Date()
-    jenis_kelamin = fields.Str()
-    kewarganegaraan = fields.Str()
-    nik = fields.Str()
-    no_kk = fields.Str()
-    no_akta = fields.Str()
-    agama = fields.Str()
-    no_telp = fields.Str()
-    anak_ke = fields.Int()
-    jumlah_saudara = fields.Int()
-    bahasa = fields.Str()
-
-    status = fields.Str(
-        validate=validate.OneOf(['calon', 'aktif', 'nonaktif'])
+    nama_lengkap = fields.Str(required=True)
+    nama_panggilan = fields.Str(required=True)
+    tempat_lahir = fields.Str(required=True)
+    tanggal_lahir = fields.Date(required=True)
+    jenis_kelamin = fields.Str(
+        required=True,
+        validate=validate.OneOf(['L', 'P'])
     )
+    kewarganegaraan = fields.Str(required=True)
+    nik = fields.Str(
+        required=True,
+        validate=[
+            validate.Length(equal=16),
+            validate.Regexp(r'^\d{16}$', error='NIK harus 16 digit angka')
+        ]
+    )
+    no_kk = fields.Str(
+        required=True,
+        validate=[
+            validate.Length(equal=16),
+            validate.Regexp(r'^\d{16}$', error='No KK harus 16 digit angka')
+        ]
+    )
+    no_akta = fields.Str(required=True, validate=validate.Length(max=25))
+    agama = fields.Str(
+        required=True,
+        validate=validate.OneOf([
+            'islam','kristen','katolik','hindu','buddha','konghucu'
+        ])
+    )
+    no_telp = fields.Str(
+        required=True,
+        validate=[
+            validate.Length(min=10, max=20),
+            validate.Regexp(r'^\+?\d+$', error='No HP hanya boleh angka')
+        ]
+    )
+    anak_ke = fields.Int(required=True)
+    jumlah_saudara = fields.Int(required=True)
+    bahasa = fields.Str(required=True)
+    alamat_domisili = fields.Nested(AlamatSchema, required=True)
+    alamat_kk = fields.Nested(AlamatSchema, required=False, allow_none=True)
 
-    alamat_domisili = fields.Nested(AlamatSchema)
-    alamat_kk = fields.Nested(AlamatSchema)
+    alamat_kk_same = fields.Boolean(required=True)
 
-    kesehatan = fields.Nested(KesehatanSchema)
-    orang_tua = fields.Nested(OrangTuaSchema, many=True)
-    informasi = fields.Nested(InformasiSchema)
+    kesehatan = fields.Nested(KesehatanSchema, required=True)
+    orang_tua = fields.Nested(OrangTuaSchema, many=True, required=True)
+    informasi = fields.Nested(InformasiSchema, required=True)
+
+    @validates_schema
+    def validate_alamat(self, data, **kwargs):
+        same = data.get("alamat_kk_same")
+
+        if same is False and not data.get("alamat_kk"):
+            raise ValidationError(
+                "Alamat KK wajib diisi jika tidak sama dengan domisili",
+                field_name="alamat_kk"
+            )
 
 class DokumenSchema(Schema):
-    jenis_dokumen = fields.Str()
-    file_path = fields.Str()
-    uploaded_at = fields.DateTime()
+    jenis_dokumen = fields.Str(
+        required=True,
+        validate=validate.OneOf(['kk','akta','kia','foto','surat_pernyataan','bukti_pembayaran'])
+    )
+    file_path = fields.Str(
+        required=True,
+        validate=validate.Length(max=500)
+    )
 
 class GelombangSchema(Schema):
-    id = fields.Int()
-    nama = fields.Str()
+    id = fields.Int(dump_only=True)
+    tahun_ajaran_id = fields.Int(required=True)
+    nama = fields.Str(
+        required=True,
+        validate=validate.Length(max=50)
+    )
+    tanggal_mulai = fields.Date(required=True)
+    tanggal_selesai = fields.Date(required=True)
+
+    @validates_schema
+    def validate_tanggal(self, data, **kwargs):
+        if data['tanggal_selesai'] < data['tanggal_mulai']:
+            raise ValidationError(
+                "Tanggal selesai tidak boleh sebelum tanggal mulai",
+                field_name="tanggal_selesai"
+            )
 
 class TahunAjaranSchema(Schema):
-    id = fields.Int()
-    label = fields.Method("get_label")
+    id = fields.Int(dump_only=True)
+    tahun_mulai = fields.Int(dump_only=True)
+    tahun_selesai = fields.Int(dump_only=True)
+    label = fields.Method("get_label", dump_only=True)
 
     def get_label(self, obj):
+        if not obj:
+            return None
         return f"{obj.tahun_mulai}/{obj.tahun_selesai}"
 
-class PendaftaranSchema(Schema):
+class PendaftaranSchema(Schema, UmurMixin):
     id = fields.Int(dump_only=True)
-    user_id = fields.Int(dump_only=True)
     no_pendaftaran = fields.Str(dump_only=True)
-    tanggal_daftar = fields.DateTime(dump_only=True)
+    created_at = fields.DateTime(dump_only=True)
     status = fields.Str(
-        validate=validate.OneOf(['pending', 'verified', 'accepted', 'rejected'])
+        dump_only=True,
+        validate=validate.OneOf(['draft','pending','verified','accepted','rejected'])
     )
     status_pembayaran = fields.Str(
-        validate=validate.OneOf(['unpaid', 'pending', 'paid', 'failed'])
+        dump_only=True,
+        validate=validate.OneOf(['unpaid','pending','paid','failed'])
     )
+    umur = fields.Method("get_umur", dump_only=True)
     jenis = fields.Str(
+        required=True,
         validate=validate.OneOf(['tk', 'kb'])
     )
     program = fields.Str(
-        validate=validate.OneOf(['reguler', 'halfday', 'fullday'])
+        required=True,
+        validate=validate.OneOf(['reguler','halfday','fullday'])
     )
-
-    id_tahun = fields.Int(load_only=True)
-    peserta = fields.Nested(PesertaSchema)
-    dokumen = fields.Nested(DokumenSchema, many=True)
-
-    id_gelombang = fields.Int(load_only=True)
-
-    tahun_ajaran = fields.Nested(TahunAjaranSchema, dump_only=True)
-    gelombang = fields.Nested(GelombangSchema, dump_only=True)
-
-    tanggal_observasi = fields.Date(allow_none=True)
-    jam_observasi = fields.Time(allow_none=True)    
-
+    tahun_ajaran_id = fields.Int(required=True)
+    peserta = fields.Nested(
+        PesertaSchema,
+        required=True
+    )
+    dokumen = fields.Nested(
+        DokumenSchema,
+        many=True,
+        dump_only=True
+    )
+    tahun_ajaran = fields.Nested(
+        TahunAjaranSchema,
+        dump_only=True
+    )
+    gelombang = fields.Nested(
+        GelombangSchema,
+        dump_only=True
+    )
+    observasi_at = fields.DateTime(allow_none=True)
     status_observasi = fields.Str(
         dump_only=True,
-        validate=validate.OneOf(['belum', 'terjadwal', 'hadir', 'tidak_hadir'])
+        validate=validate.OneOf(['belum','terjadwal','hadir','tidak_hadir'])
     )
 
-class PendaftaranListSchema(Schema):
-    id = fields.Int()
-    no_pendaftaran = fields.Str()
-    tanggal_daftar = fields.DateTime()
+    def get_umur(self, obj):
+        if not obj or not obj.peserta:
+            return None
 
-    jenis = fields.Str()
-    program = fields.Str()
-    status = fields.Str()
-    status_pembayaran = fields.Str()
+        return self.calculate_umur(
+            obj.peserta.tanggal_lahir,
+            detail=True,
+            with_days=True
+        )
 
-    nama_lengkap = fields.Method("get_nama")
+
+class PendaftaranListSchema(Schema, UmurMixin):
+    id = fields.Int(dump_only=True)
+    no_pendaftaran = fields.Str(dump_only=True)
+
+    umur = fields.Method("get_umur", dump_only=True)
+    jenis = fields.Str(dump_only=True)
+    program = fields.Str(dump_only=True)
+
+    status = fields.Str(dump_only=True)
+    status_pembayaran = fields.Str(dump_only=True)
+
+    observasi_at = fields.DateTime(allow_none=True)
+    status_observasi = fields.Str(dump_only=True)
+
+    nama_lengkap = fields.Method("get_nama", dump_only=True)
+    tahun_ajaran = fields.Method("get_tahun", dump_only=True)
+    created_at = fields.DateTime(dump_only=True)
 
     def get_nama(self, obj):
-        return obj.peserta.nama_lengkap if obj.peserta else None
+        if not obj or not obj.peserta:
+            return None
+        return obj.peserta.nama_lengkap
+
+    def get_tahun(self, obj):
+        if not obj or not obj.tahun_ajaran:
+            return None
+        return getattr(obj.tahun_ajaran, "label", None)
+    
+    def get_umur(self, obj):
+        if not obj or not obj.peserta:
+            return None
+
+        return self.calculate_umur(obj.peserta.tanggal_lahir)

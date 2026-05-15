@@ -58,7 +58,7 @@ def upload_dokumen(pendaftaran, file, jenis, folder):
     file_url = save_file(file, folder)
 
     existing = Dokumen.query.filter_by(
-        id_pendaftaran=pendaftaran.id,
+        pendaftaran_id=pendaftaran.id,
         jenis_dokumen=jenis
     ).first()
 
@@ -67,7 +67,7 @@ def upload_dokumen(pendaftaran, file, jenis, folder):
         existing.file_path = file_url
     else:
         db.session.add(Dokumen(
-            id_pendaftaran=pendaftaran.id,
+            pendaftaran_id=pendaftaran.id,
             jenis_dokumen=jenis,
             file_path=file_url
         ))

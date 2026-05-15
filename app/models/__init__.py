@@ -6,3 +6,5 @@ from app.models.pendaftaran import *
 from app.models.akademik import *
 # mdoel asesmen
 from app.models.asesmen import *
+# model observasi
+from app.models.observasi import *

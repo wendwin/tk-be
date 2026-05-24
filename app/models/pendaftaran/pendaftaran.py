@@ -37,6 +37,18 @@ class Pendaftaran(db.Model):
         default='unpaid'
     )
 
+    status_berkas = db.Column(
+        db.Enum(
+            'belum_upload',
+            'pending',
+            'verified',
+            'rejected',
+            name='status_berkas_enum'
+        ),
+        nullable=False,
+        default='belum_upload'
+)
+
     tanggal_daftar = db.Column(
         db.DateTime,
         nullable=False,

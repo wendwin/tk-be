@@ -5,6 +5,8 @@ from app.seeders.user_seeder import seed_users
 from app.seeders.tahun_ajaran_seeder import seed_tahun_ajaran
 from app.seeders.gelombang_seeder import seed_gelombang
 from app.seeders.kpsp_pertanyaan_seeder import seed_kpsp_pertanyaan
+from app.seeders.kelas_seeder import seed_kelas
+from app.seeders.pendaftaran_seeder import seed_pendaftaran
 
 def seed_all():
     seed_roles()
@@ -14,3 +16,5 @@ def seed_all():
     seed_gelombang()
     seed_gpph_pertanyaan()
     seed_kpsp_pertanyaan()
+    seed_kelas()
+    seed_pendaftaran()

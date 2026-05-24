@@ -8,3 +8,5 @@ from app.models.akademik import *
 from app.models.asesmen import *
 # model observasi
 from app.models.observasi import *
+# model akademik
+from app.models.akademik import *

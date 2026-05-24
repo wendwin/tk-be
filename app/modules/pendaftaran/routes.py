@@ -5,11 +5,12 @@ from flask import Blueprint, request, redirect, send_from_directory, json, curre
 
 from app.models.pendaftaran.tahun_ajaran import TahunAjaran
 from .schema import PendaftaranSchema, PendaftaranListSchema, TahunAjaranSchema
-from .service import get_all, create, get_by_id, get_by_user_id, upload_berkas_service,upload_pembayaran_service, update_pendaftaran_service, generate_surat_pernyataan
+from .service import get_all, create, get_by_id, get_by_user_id, upload_berkas_service, update_status_berkas_service, update_status_pembayaran_service , update_status_pendaftaran_service,upload_pembayaran_service, update_pendaftaran_service
 from app.utils.decorators import role_required
 from app.utils.responses import success_response, error_response
 from app.utils.pagination import format_pagination
-from app.utils.formulir_pdf import generate_formulir_pdf
+from app.utils.formulir import generate_formulir_pendaftaran
+from app.utils.surat_pernyataan import generate_surat_pernyataan
 
 import traceback
 
@@ -22,11 +23,14 @@ def index():
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 10, type=int)
     
+    jenis = request.args.get("jenis")
+    program = request.args.get("program")
+    tahun_ajaran_id = request.args.get("tahun_ajaran_id", type=int)
     search = request.args.get('search')
     status = request.args.get('status')
     status_pembayaran = request.args.get('status_pembayaran')
 
-    pagination = get_all(page, per_page, search, status, status_pembayaran  )
+    pagination = get_all(page, per_page,search, status, status_pembayaran, jenis, program, tahun_ajaran_id)
 
     schema = PendaftaranListSchema(many=True)
     data = schema.dump(pagination.items)
@@ -139,26 +143,41 @@ def update_status_pendaftaran(id):
         data = request.get_json()
         status = data.get("status")
 
-        if status not in ["pending", "verified", "accepted", "rejected"]:
-            return error_response("Status tidak valid", code=422)
-
-        pendaftaran = get_by_id(id)
-
-        if not pendaftaran:
-            return error_response("Data tidak ditemukan", code=404)
-
-        pendaftaran.status = status
-
-        db.session.commit()
+        result = update_status_pendaftaran_service(id, status)
 
         return success_response(
             message="Status pendaftaran berhasil diupdate",
-            data={"status": status}
+            data=result
         )
+
+    except ValueError as e:
+        return error_response(str(e), 422)
 
     except Exception as e:
         db.session.rollback()
-        return error_response(message=str(e), code=500)
+        return error_response(str(e), 500)
+    
+# update status berkas
+@bp_pendaftaran.route('/<int:id>/status-berkas', methods=['PATCH'])
+@role_required('admin')
+def update_status_berkas(id):
+    try:
+        data = request.get_json()
+        status = data.get("status_berkas")
+
+        result = update_status_berkas_service(id, status)
+
+        return success_response(
+            message="Status berkas berhasil diupdate",
+            data=result
+        )
+
+    except ValueError as e:
+        return error_response(str(e), 422)
+
+    except Exception as e:
+        db.session.rollback()
+        return error_response(str(e), 500)
 
 # upload bukti pembayaran
 @bp_pendaftaran.route('/<int:id>/upload-pembayaran', methods=['POST'])
@@ -191,27 +210,20 @@ def update_status_pembayaran(id):
         data = request.get_json()
         status = data.get("status_pembayaran")
 
-        if status not in ["paid", "failed"]:
-            return error_response("Status tidak valid", code=422)
-
-        pendaftaran = get_by_id(id)
-
-        if not pendaftaran:
-            return error_response("Data tidak ditemukan", code=404)
-
-        pendaftaran.status_pembayaran = status
-
-        db.session.commit()
+        result = update_status_pembayaran_service(id, status)
 
         return success_response(
             message="Status pembayaran berhasil diupdate",
-            data={"status_pembayaran": status}
+            data=result
         )
+
+    except ValueError as e:
+        return error_response(str(e), 422)
 
     except Exception as e:
         db.session.rollback()
-        return error_response(message=str(e), code=500)
-      
+        return error_response(str(e), 500)
+    
 # akses file
 @bp_pendaftaran.route('/uploads/<path:filename>', methods=['GET'])
 @jwt_required()
@@ -219,35 +231,22 @@ def update_status_pembayaran(id):
 def uploaded_file(filename):
     return send_from_directory(os.path.join(os.getcwd(), 'uploads'), filename)
 
+# download formulir
 @bp_pendaftaran.route('/<int:id>/download', methods=['GET'])
 @role_required('admin')
 def download_formulir(id):
-    pendaftaran = get_by_id(id)
+    try:
+        file_path = generate_formulir_pendaftaran(id)
 
-    if not pendaftaran:
-        return error_response("Data tidak ditemukan", code=404)
+        return send_file(
+            file_path,
+            as_attachment=False,
+            download_name="formulir_pendaftaran.pdf"
+        )
 
-    folder = os.path.join(os.getcwd(), "uploads", "formulir")
-    os.makedirs(folder, exist_ok=True)
-
-    tahun_ajaran = TahunAjaran.query.filter_by(status="aktif").first()
+    except Exception as e:
+        return error_response(str(e), code=500)
     
-    tahunAjaranSchema = TahunAjaranSchema()
-    result = tahunAjaranSchema.dump(tahun_ajaran)
-
-    tahun_label = result["label"]
-    filename = f"{pendaftaran.no_pendaftaran}.pdf"
-    filepath = os.path.join(folder, filename)
-
-    if not os.path.exists(filepath):
-        generate_formulir_pdf(pendaftaran, filepath, tahun_label)
-
-    return send_from_directory(
-        folder,
-        filename,
-        as_attachment=False
-    )
-
 # download surat pernyataan
 @bp_pendaftaran.route('/download-surat-pernyataan', methods=['GET'])
 @role_required('orang_tua')

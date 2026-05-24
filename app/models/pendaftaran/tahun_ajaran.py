@@ -15,6 +15,8 @@ class TahunAjaran(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     tahun_mulai = db.Column(db.Integer,nullable=False)
     tahun_selesai = db.Column(db.Integer,nullable=False)
+    tanggal_mulai = db.Column(db.Date,nullable=False)
+    tanggal_selesai = db.Column(db.Date,nullable=False)
     is_active = db.Column(db.Boolean,nullable=False,default=False)
 
     created_at = db.Column(db.DateTime,nullable=False,default=datetime.utcnow)

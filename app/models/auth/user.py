@@ -5,12 +5,17 @@ class User(db.Model):
     __tablename__ = 'users'
 
     id = db.Column(db.Integer, primary_key=True)
+    first_name = db.Column(db.String(100), nullable=False)
+    last_name = db.Column(db.String(100), nullable=True)
+
     email = db.Column(db.String(100), unique=True)
     password = db.Column(db.String(255))
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
     is_verified = db.Column(db.Boolean, default=False)
     verification_token = db.Column(db.String(255), nullable=True)
     reset_token = db.Column(db.String(255), nullable=True)
+    is_active = db.Column(db.Boolean, nullable=False, default=True)
+    deleted_at = db.Column(db.DateTime, nullable=True)
 
     created_at = db.Column(
         db.DateTime(timezone=True),
@@ -24,3 +29,7 @@ class User(db.Model):
     )
 
     role = db.relationship('Role')
+
+    @property
+    def full_name(self):
+        return f"{self.first_name} {self.last_name or ''}".strip()

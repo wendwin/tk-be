@@ -68,7 +68,8 @@ def get_me():
         data={
             "id": user.id,
             "email": user.email,
-            "role": claims.get("role") 
+            "role": claims.get("role"),
+            "full_name": user.full_name
         },
         code=200
     )

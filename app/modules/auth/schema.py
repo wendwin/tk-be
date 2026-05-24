@@ -1,6 +1,18 @@
 from marshmallow import Schema, fields, validate
 
 class RegisterSchema(Schema):
+    first_name = fields.Str(
+        required=True,
+        validate=validate.Length(min=2, max=100),
+        error_messages={"required": "Nama depan wajib diisi"}
+    )
+
+    last_name = fields.Str(
+        required=False,
+        allow_none=True,
+        validate=validate.Length(max=100)
+    )
+
     email = fields.Email(
         required=True,
         error_messages={

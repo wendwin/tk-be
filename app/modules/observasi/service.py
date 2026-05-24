@@ -48,6 +48,26 @@ def set_jadwal_observasi(ids, observasi_at):
     return pendaftaran_list
 
 
+def update_status_observasi_complete(pendaftaran_id):
+    pendaftaran = db.session.get(Pendaftaran, pendaftaran_id)
+
+    if not pendaftaran:
+        raise ValueError("Pendaftaran tidak ditemukan")
+
+    if pendaftaran.status_observasi == "hadir":
+        return
+
+    has_gpph = GPPHJawaban.query.filter_by(
+        pendaftaran_id=pendaftaran_id
+    ).first()
+
+    has_kpsp = KPSPJawaban.query.filter_by(
+        pendaftaran_id=pendaftaran_id
+    ).first()
+
+    if has_gpph and has_kpsp:
+        pendaftaran.status_observasi = "hadir"
+
 def update_status_observasi(id, status):
     pendaftaran = Pendaftaran.query.get(id)
 
@@ -180,6 +200,8 @@ def create_gpph(pendaftaran_id,data):
         )
 
         db.session.add(jawaban)
+    
+    update_status_observasi_complete(pendaftaran_id)
 
     db.session.commit()
 
@@ -382,6 +404,8 @@ def create_kpsp(pendaftaran_id, data):
 
         db.session.add(jawaban)
 
+    update_status_observasi_complete(pendaftaran_id)
+
     db.session.commit()
 
 def get_kpsp_result(pendaftaran_id):
@@ -403,7 +427,6 @@ def get_kpsp_result(pendaftaran_id):
     catatan = None
 
     for item in jawaban:
-
         catatan = item.catatan
 
         result.append({

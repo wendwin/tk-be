@@ -14,9 +14,15 @@ def register_user(data):
         return error_response("Email already registered", code=400)
 
     role = Role.query.filter_by(name='orang_tua').first()
+
+    if not role:
+        return error_response("Role orang tua tidak ditemukan", code=500)
+
     token = secrets.token_urlsafe(32)
 
     user = User(
+        first_name=data["first_name"],
+        last_name=data.get("last_name"),
         email=data['email'],
         password=generate_password_hash(data['password']),
         role=role,
@@ -54,6 +60,9 @@ def login_user(data):
 
     if not user.is_verified:
         return error_response("Please verify your email first", code=403)
+    
+    if not user.is_active:
+        raise ValueError("Akun sudah dinonaktifkan")
 
     token = create_access_token(
         identity=str(user.id),
@@ -65,7 +74,12 @@ def login_user(data):
     response, code = success_response(
         "Login success", 
         data={
-            "role": user.role.name
+            "user": {
+                "id": user.id,
+                "full_name": user.full_name,
+                "email": user.email,
+                "role": user.role.name,
+            }
         },
         code=200
     )

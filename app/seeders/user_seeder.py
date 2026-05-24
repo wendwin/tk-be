@@ -5,27 +5,70 @@ from app.models.auth.role import Role
 from werkzeug.security import generate_password_hash
 
 def seed_users():
-    admin_role = Role.query.filter_by(name="admin").first()
+    import os
 
-    if not admin_role:
-        print("Role admin tidak ditemukan!")
-        return
-    
-    email = os.getenv("ADMIN_EMAIL")
-    password = os.getenv("ADMIN_PASSWORD")
+    users = [
+        {
+            "first_name": "Super",
+            "last_name": "Admin",
+            "email": os.getenv("ADMIN_EMAIL"),
+            "password": os.getenv("ADMIN_PASSWORD"),
+            "role": "admin",
+        },
 
-    existing = User.query.filter_by(email=email).first()
-    if existing:
-        print("User admin sudah ada")
-        return
+        {
+            "first_name": "Budi",
+            "last_name": "Santoso",
+            "email": os.getenv("GURU1_EMAIL"),
+            "password": os.getenv("GURU1_PASSWORD"),
+            "role": "guru",
+        },
 
-    user = User(
-        email=email,
-        password=generate_password_hash(password),
-        role_id=admin_role.id,
-        is_verified=True
-    )
+        {
+            "first_name": "Siti",
+            "last_name": "Aminah",
+            "email": os.getenv("GURU2_EMAIL"),
+            "password": os.getenv("GURU2_PASSWORD"),
+            "role": "guru",
+        },
 
-    db.session.add(user)
+        {
+            "first_name": "Ahmad",
+            "last_name": "Fauzi",
+            "email": os.getenv("GURU3_EMAIL"),
+            "password": os.getenv("GURU3_PASSWORD"),
+            "role": "guru",
+        },
+    ]
+    for item in users:
+        role = Role.query.filter_by(
+            name=item["role"]
+        ).first()
+
+        if not role:
+            print(f"Role {item['role']} tidak ditemukan!")
+            continue
+
+        existing = User.query.filter_by(
+            email=item["email"]
+        ).first()
+
+        if existing:
+            print(f"User {item['email']} sudah ada")
+            continue
+
+        user = User(
+            first_name=item["first_name"],
+            last_name=item["last_name"],
+            email=item["email"],
+            password=generate_password_hash(item["password"]),
+            role_id=role.id,
+            is_verified=True,
+            is_active=True,
+        )
+
+        db.session.add(user)
+
     db.session.commit()
+
     print("Seeder user berhasil")

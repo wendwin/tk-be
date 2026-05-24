@@ -34,17 +34,41 @@ def create_app():
     from app.modules.auth.routes import auth_bp
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
 
+    # user
+    from app.modules.user.routes import bp_user
+    app.register_blueprint(bp_user,url_prefix="/api/users")
+
     # pendaftaran
     from app.modules.pendaftaran.routes import bp_pendaftaran
     app.register_blueprint(bp_pendaftaran, url_prefix="/api/pendaftaran")
     
     # asesmen
-    from app.modules.asesmen.route import bp_asesmen
+    from app.modules.asesmen.routes import bp_asesmen
     app.register_blueprint(bp_asesmen, url_prefix="/api/asesmen")
 
     # observasi
-    from app.modules.observasi.route import bp_observasi
+    from app.modules.observasi.routes import bp_observasi
     app.register_blueprint(bp_observasi, url_prefix="/api/observasi")
+
+    # siswa
+    from app.modules.akademik.siswa.routes import bp_siswa
+    app.register_blueprint(bp_siswa, url_prefix="/api/akademik/siswa")
+
+    # kelas
+    from app.modules.akademik.kelas.routes import bp_kelas
+    app.register_blueprint(bp_kelas, url_prefix="/api/akademik/kelas")
+
+    # guru kelas
+    from app.modules.akademik.guru_kelas.routes import bp_guru_kelas
+    app.register_blueprint(bp_guru_kelas, url_prefix="/api/akademik/guru-kelas")
+
+    # siswa kelas
+    from app.modules.akademik.siswa_kelas.routes import bp_siswa_kelas
+    app.register_blueprint(bp_siswa_kelas, url_prefix="/api/akademik/siswa-kelas")
+
+    # tahun ajaran
+    from app.modules.akademik.tahun_ajaran.routes import bp_tahun_ajaran
+    app.register_blueprint(bp_tahun_ajaran,url_prefix="/api/tahun-ajaran")
 
     
     return app

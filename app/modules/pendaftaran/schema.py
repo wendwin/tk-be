@@ -282,6 +282,10 @@ class PendaftaranSchema(Schema, UmurMixin):
         dump_only=True,
         validate=validate.OneOf(['unpaid','pending','paid','failed'])
     )
+    status_berkas = fields.Str(
+        dump_only=True,
+        validate=validate.OneOf(['belum_upload', 'pending', 'verified', 'rejected'])
+    )
     umur = fields.Method("get_umur", dump_only=True)
     jenis = fields.Str(
         required=True,
@@ -336,6 +340,7 @@ class PendaftaranListSchema(Schema, UmurMixin):
 
     status = fields.Str(dump_only=True)
     status_pembayaran = fields.Str(dump_only=True)
+    status_berkas = fields.Str(dump_only=True)
 
     observasi_at = fields.DateTime(allow_none=True)
     status_observasi = fields.Str(dump_only=True)

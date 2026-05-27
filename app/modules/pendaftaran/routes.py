@@ -18,7 +18,7 @@ bp_pendaftaran = Blueprint('pendaftaran', __name__)
 
 # get all
 @bp_pendaftaran.route('', methods=['GET'])
-@role_required('admin', 'orang_tua',)
+@role_required('admin', 'orang_tua', 'guru')
 def index():
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 10, type=int)
@@ -71,7 +71,7 @@ def store():
     
 # get by id
 @bp_pendaftaran.route('/<int:id>', methods=['GET'])
-@role_required('admin', 'orang_tua')
+@role_required('admin', 'orang_tua', 'guru')
 def show(id):
     pendaftaran = get_by_id(id)
 

@@ -70,5 +70,9 @@ def create_app():
     from app.modules.akademik.tahun_ajaran.routes import bp_tahun_ajaran
     app.register_blueprint(bp_tahun_ajaran,url_prefix="/api/tahun-ajaran")
 
+    # monitoring
+    from app.modules.monitoring.routes import bp_monitoring
+    app.register_blueprint(bp_monitoring, url_prefix="/api/monitoring")
+
     
     return app

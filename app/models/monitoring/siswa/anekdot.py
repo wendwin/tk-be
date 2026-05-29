@@ -6,9 +6,9 @@ class MonitoringAnekdot(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
 
-    monitoring_id = db.Column(
+    monitoring_siswa_id = db.Column(
         db.Integer,
-        db.ForeignKey("monitoring_mingguan.id"),
+        db.ForeignKey("monitoring_siswa.id"),
         nullable=False,
         index=True
     )
@@ -23,7 +23,7 @@ class MonitoringAnekdot(db.Model):
     waktu = db.Column(db.DateTime, nullable=False)
     catatan = db.Column(db.Text, nullable=False)
 
-    monitoring = db.relationship("Monitoring", backref="anekdot")
+    monitoring_siswa = db.relationship("MonitoringSiswa", backref="anekdot")
     kktp = db.relationship("MonitoringKKTP", backref="anekdot")
 
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)

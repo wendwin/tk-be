@@ -6,12 +6,7 @@ class MonitoringKKTP(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
 
-    tp_id = db.Column(
-        db.Integer,
-        db.ForeignKey("monitoring_tp.id"),
-        nullable=False,
-        index=True
-    )
+    tp_id = db.Column(db.Integer, db.ForeignKey("monitoring_tp.id"), nullable=False, index=True)
 
     deskripsi = db.Column(db.Text, nullable=False)
 

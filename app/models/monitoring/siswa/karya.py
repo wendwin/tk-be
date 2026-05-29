@@ -6,9 +6,9 @@ class MonitoringKarya(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
 
-    monitoring_id = db.Column(
+    monitoring_siswa_id = db.Column(
         db.Integer,
-        db.ForeignKey("monitoring_mingguan.id"),
+        db.ForeignKey("monitoring_siswa.id"),
         nullable=False,
         index=True
     )
@@ -25,7 +25,7 @@ class MonitoringKarya(db.Model):
     deskripsi = db.Column(db.Text, nullable=False)
     analisa = db.Column(db.Text, nullable=False)
 
-    monitoring = db.relationship("Monitoring", backref="karya")
+    monitoring_siswa = db.relationship("MonitoringSiswa", backref="karya")
     kktp = db.relationship("MonitoringKKTP", backref="karya")
 
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)

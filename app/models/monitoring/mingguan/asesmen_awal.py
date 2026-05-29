@@ -6,7 +6,7 @@ class MonitoringAsesmenAwal(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
 
-    monitoring_id = db.Column(
+    monitoring_mingguan_id = db.Column(
         db.Integer,
         db.ForeignKey("monitoring_mingguan.id"),
         nullable=False,
@@ -17,8 +17,8 @@ class MonitoringAsesmenAwal(db.Model):
     rancangan_kegiatan = db.Column(db.Text, nullable=False)
     hasil = db.Column(db.Text)
 
-    monitoring = db.relationship(
-        "Monitoring",
+    monitoring_mingguan = db.relationship(
+        "MonitoringMingguan",
         backref=db.backref("asesmen_awal", uselist=False)
     )
 

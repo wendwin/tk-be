@@ -6,9 +6,9 @@ class MonitoringIndikator(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
 
-    monitoring_id = db.Column(
+    monitoring_siswa_id = db.Column(
         db.Integer,
-        db.ForeignKey("monitoring_mingguan.id"),
+        db.ForeignKey("monitoring_siswa.id"),
         nullable=False,
         index=True
     )
@@ -23,7 +23,7 @@ class MonitoringIndikator(db.Model):
     muncul = db.Column(db.Boolean, nullable=False, default=False)
     kejadian_teramati = db.Column(db.Text)
 
-    monitoring = db.relationship("Monitoring", backref="indikator")
+    monitoring_siswa = db.relationship("MonitoringSiswa", backref="indikator")
     kktp = db.relationship("MonitoringKKTP", backref="indikator")
 
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)

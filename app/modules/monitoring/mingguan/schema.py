@@ -1,4 +1,5 @@
 from marshmallow import Schema, fields, validate
+from app.models.akademik.siswa_kelas import SiswaKelas
 
 class MonitoringKKTPSchema(Schema):
     id = fields.Int(dump_only=True)
@@ -82,6 +83,19 @@ class MonitoringMingguanListSchema(Schema):
 
     kelas = fields.Nested(MonitoringKelasMiniSchema)
     tahun_ajaran = fields.Nested(MonitoringTahunAjaranMiniSchema)
+
+    total_siswa = fields.Method("get_total_siswa")
+    total_selesai = fields.Method("get_total_selesai")
+
+    def get_total_siswa(self, obj):
+        return SiswaKelas.query.filter_by(
+            kelas_id=obj.kelas_id,
+            tahun_ajaran_id=obj.tahun_ajaran_id,
+            status="aktif"
+        ).count()
+
+    def get_total_selesai(self, obj):
+        return len(obj.monitoring_siswa)
 
 
 class MonitoringMingguanDetailSchema(MonitoringMingguanListSchema):

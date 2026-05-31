@@ -1,4 +1,6 @@
-from flask import Blueprint, request
+import os
+import json
+from flask import Blueprint, request, send_from_directory
 from flask_jwt_extended import get_jwt_identity
 
 from app.extensions import db
@@ -6,7 +8,12 @@ from app.utils.decorators import role_required
 from app.utils.responses import success_response, error_response
 from app.utils.pagination import format_pagination
 
-from .schema import MonitoringSiswaSchema, MonitoringSiswaListSchema, MonitoringSiswaDetailSchema
+from .schema import (
+    MonitoringSiswaSchema,
+    MonitoringSiswaListSchema,
+    MonitoringSiswaDetailSchema,
+)
+
 from .service import (
     get_all_siswa_monitoring,
     get_siswa_monitoring_by_id,
@@ -16,6 +23,15 @@ from .service import (
 )
 
 bp_monitoring_siswa = Blueprint("monitoring_siswa", __name__)
+
+
+def parse_monitoring_request():
+    data_raw = request.form.get("data")
+
+    if not data_raw:
+        raise ValueError("Data monitoring wajib diisi")
+
+    return json.loads(data_raw), request.files
 
 
 @bp_monitoring_siswa.route("", methods=["GET"])
@@ -69,8 +85,9 @@ def show(id):
 @role_required("admin", "guru")
 def store():
     try:
-        data = request.get_json()
         user_id = get_jwt_identity()
+
+        data, files = parse_monitoring_request()
 
         schema = MonitoringSiswaSchema()
         errors = schema.validate(data)
@@ -78,13 +95,17 @@ def store():
         if errors:
             return error_response("Validation error", errors=errors, code=422)
 
-        monitoring = create_siswa_monitoring(data, user_id)
+        monitoring = create_siswa_monitoring(data, user_id, files)
 
         return success_response(
             message="Monitoring siswa berhasil dibuat",
             data=MonitoringSiswaDetailSchema().dump(monitoring),
             code=201,
         )
+
+    except ValueError as e:
+        db.session.rollback()
+        return error_response(str(e), code=422)
 
     except Exception as e:
         db.session.rollback()
@@ -95,7 +116,7 @@ def store():
 @role_required("admin", "guru")
 def update(id):
     try:
-        data = request.get_json()
+        data, files = parse_monitoring_request()
 
         schema = MonitoringSiswaSchema(partial=True)
         errors = schema.validate(data)
@@ -103,7 +124,7 @@ def update(id):
         if errors:
             return error_response("Validation error", errors=errors, code=422)
 
-        monitoring = update_siswa_monitoring(id, data)
+        monitoring = update_siswa_monitoring(id, data, files)
 
         return success_response(
             message="Monitoring siswa berhasil diperbarui",
@@ -112,7 +133,7 @@ def update(id):
 
     except ValueError as e:
         db.session.rollback()
-        return error_response(str(e), code=404)
+        return error_response(str(e), code=422)
 
     except Exception as e:
         db.session.rollback()
@@ -137,3 +158,20 @@ def publish(id):
     except Exception as e:
         db.session.rollback()
         return error_response(str(e), code=500)
+    
+
+@bp_monitoring_siswa.route("/file/karya/<path:filename>", methods=["GET"])
+@role_required("admin", "guru", "orang_tua")
+def show_karya_file(filename):
+    try:
+        folder = os.path.join(
+            os.getcwd(),
+            "uploads",
+            "monitoring",
+            "karya"
+        )
+
+        return send_from_directory(folder, filename)
+
+    except Exception as e:
+        return error_response(str(e), code=404)

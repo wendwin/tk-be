@@ -15,6 +15,8 @@ from app.models.monitoring.siswa.rekomendasi import MonitoringRekomendasi
 from app.models.akademik.siswa_kelas import SiswaKelas
 from app.models.akademik.siswa import Siswa
 
+from app.utils.file_helper import validate_monitoring_image, save_file
+
 
 def get_all_siswa_monitoring(
     page=1,
@@ -89,7 +91,7 @@ def get_siswa_monitoring_by_id(id):
     return monitoring
 
 
-def create_siswa_monitoring(data, user_id):
+def create_siswa_monitoring(data, user_id, files=None):
     validate_kktp_belongs_to_mingguan(
         data["monitoring_mingguan_id"],
         data
@@ -108,14 +110,14 @@ def create_siswa_monitoring(data, user_id):
     db.session.add(monitoring)
     db.session.flush()
 
-    create_detail_siswa(monitoring.id, data)
+    create_detail_siswa(monitoring.id, data, files)
 
     db.session.commit()
 
     return get_siswa_monitoring_by_id(monitoring.id)
 
 
-def update_siswa_monitoring(id, data):
+def update_siswa_monitoring(id, data, files=None):
     monitoring = MonitoringSiswa.query.get(id)
 
     if not monitoring:
@@ -124,19 +126,18 @@ def update_siswa_monitoring(id, data):
     monitoring.ringkasan = data.get("ringkasan", monitoring.ringkasan)
     monitoring.status = data.get("status", monitoring.status)
 
-    if data.get("replace_detail") is True:
-        payload = {
-            **data,
-            "monitoring_mingguan_id": monitoring.monitoring_mingguan_id,
-        }
+    payload = {
+        **data,
+        "monitoring_mingguan_id": monitoring.monitoring_mingguan_id,
+    }
 
-        validate_kktp_belongs_to_mingguan(
-            monitoring.monitoring_mingguan_id,
-            payload
-        )
+    validate_kktp_belongs_to_mingguan(
+        monitoring.monitoring_mingguan_id,
+        payload
+    )
 
-        delete_detail_siswa(monitoring.id)
-        create_detail_siswa(monitoring.id, payload)
+    delete_detail_siswa(monitoring.id)
+    create_detail_siswa(monitoring.id, payload, files)
 
     db.session.commit()
 
@@ -156,13 +157,23 @@ def publish_siswa_monitoring(id):
     return get_siswa_monitoring_by_id(monitoring.id)
 
 
-def create_detail_siswa(monitoring_siswa_id, data):
-    for karya_data in data.get("karya", []):
+def create_detail_siswa(monitoring_siswa_id, data, files=None):
+    for index, karya_data in enumerate(data.get("karya", [])):
+        foto_path = karya_data.get("foto")
+
+        if files:
+            file_key = f"karya[{index}][foto]"
+            foto_file = files.get(file_key)
+
+            if foto_file:
+                validate_monitoring_image(foto_file)
+                foto_path = save_file(foto_file, "monitoring/karya")
+
         db.session.add(MonitoringKarya(
             monitoring_siswa_id=monitoring_siswa_id,
             kktp_id=karya_data["kktp_id"],
             kegiatan=karya_data["kegiatan"],
-            foto=karya_data.get("foto"),
+            foto=foto_path,
             deskripsi=karya_data["deskripsi"],
             analisa=karya_data["analisa"],
         ))

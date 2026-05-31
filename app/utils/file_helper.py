@@ -9,6 +9,9 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'pdf'}
 UPLOAD_FOLDER = 'uploads/pembayaran'
 MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
 
+MONITORING_IMAGE_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
+MONITORING_MAX_FILE_SIZE = 5 * 1024 * 1024
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -73,3 +76,26 @@ def upload_dokumen(pendaftaran, file, jenis, folder):
         ))
 
     return file_url
+
+def allowed_monitoring_image(filename):
+    return (
+        "." in filename
+        and filename.rsplit(".", 1)[1].lower() in MONITORING_IMAGE_EXTENSIONS
+    )
+
+def validate_monitoring_image(file):
+    if not file or file.filename == "":
+        raise Exception("Foto kegiatan wajib dipilih")
+
+    if not allowed_monitoring_image(file.filename):
+        raise Exception("Format foto harus png, jpg, jpeg, atau webp")
+
+    file.seek(0, os.SEEK_END)
+    file_length = file.tell()
+    file.seek(0)
+
+    if file_length == 0:
+        raise Exception("File foto kosong")
+
+    if file_length > MONITORING_MAX_FILE_SIZE:
+        raise Exception("Ukuran foto maksimal 5MB")

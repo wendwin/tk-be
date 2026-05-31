@@ -16,7 +16,7 @@ class MonitoringAnekdotInputSchema(Schema):
 
 
 class MonitoringIndikatorInputSchema(Schema):
-    kktp_id = fields.Int(required=True)
+    tp_id = fields.Int(required=True)
     muncul = fields.Bool(required=True)
     kejadian_teramati = fields.Str(allow_none=True)
 
@@ -118,6 +118,7 @@ class SiswaKelasMiniSchema(Schema):
 
 class MonitoringKaryaDetailSchema(Schema):
     id = fields.Int()
+    kktp_id = fields.Int()
     kegiatan = fields.Str()
     foto = fields.Str()
     deskripsi = fields.Str()
@@ -127,6 +128,7 @@ class MonitoringKaryaDetailSchema(Schema):
 
 class MonitoringAnekdotDetailSchema(Schema):
     id = fields.Int()
+    kktp_id = fields.Int()
     waktu = fields.DateTime()
     catatan = fields.Str()
     kktp = fields.Nested(MonitoringKKTPMiniSchema)
@@ -134,10 +136,10 @@ class MonitoringAnekdotDetailSchema(Schema):
 
 class MonitoringIndikatorDetailSchema(Schema):
     id = fields.Int()
+    tp_id = fields.Int()
     muncul = fields.Bool()
     kejadian_teramati = fields.Str()
-    kktp = fields.Nested(MonitoringKKTPMiniSchema)
-
+    tp = fields.Nested(MonitoringTPMiniSchema)
 
 class MonitoringRekomendasiDetailSchema(Schema):
     id = fields.Int()

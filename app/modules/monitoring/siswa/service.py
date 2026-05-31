@@ -77,7 +77,8 @@ def get_siswa_monitoring_by_id(id):
             .joinedload(MonitoringAnekdot.kktp),
 
             joinedload(MonitoringSiswa.indikator)
-            .joinedload(MonitoringIndikator.kktp),
+            .joinedload(MonitoringIndikator.tp)
+            .joinedload(MonitoringTP.kktp),
 
             joinedload(MonitoringSiswa.rekomendasi),
         )
@@ -92,7 +93,7 @@ def get_siswa_monitoring_by_id(id):
 
 
 def create_siswa_monitoring(data, user_id, files=None):
-    validate_kktp_belongs_to_mingguan(
+    validate_detail_belongs_to_mingguan(
         data["monitoring_mingguan_id"],
         data
     )
@@ -131,7 +132,7 @@ def update_siswa_monitoring(id, data, files=None):
         "monitoring_mingguan_id": monitoring.monitoring_mingguan_id,
     }
 
-    validate_kktp_belongs_to_mingguan(
+    validate_detail_belongs_to_mingguan(
         monitoring.monitoring_mingguan_id,
         payload
     )
@@ -159,8 +160,8 @@ def publish_siswa_monitoring(id):
 
 def create_detail_siswa(monitoring_siswa_id, data, files=None):
     for index, karya_data in enumerate(data.get("karya", [])):
-        foto_path = karya_data.get("foto")
-
+        foto_path = karya_data.get("foto") 
+        
         if files:
             file_key = f"karya[{index}][foto]"
             foto_file = files.get(file_key)
@@ -189,7 +190,7 @@ def create_detail_siswa(monitoring_siswa_id, data, files=None):
     for indikator_data in data.get("indikator", []):
         db.session.add(MonitoringIndikator(
             monitoring_siswa_id=monitoring_siswa_id,
-            kktp_id=indikator_data["kktp_id"],
+            tp_id=indikator_data["tp_id"],
             muncul=indikator_data.get("muncul", False),
             kejadian_teramati=indikator_data.get("kejadian_teramati"),
         ))
@@ -220,30 +221,46 @@ def delete_detail_siswa(monitoring_siswa_id):
     ).delete()
 
 
-def validate_kktp_belongs_to_mingguan(monitoring_mingguan_id, data):
+def validate_detail_belongs_to_mingguan(monitoring_mingguan_id, data):
+    tp_ids = []
     kktp_ids = []
 
+    for item in data.get("indikator", []):
+        tp_ids.append(item["tp_id"])
+
     for item in data.get("karya", []):
+        if not item.get("kktp_id"):
+            raise ValueError("KKTP hasil karya wajib dipilih")
         kktp_ids.append(item["kktp_id"])
 
     for item in data.get("anekdot", []):
+        if not item.get("kktp_id"):
+            raise ValueError("KKTP catatan anekdot wajib dipilih")
         kktp_ids.append(item["kktp_id"])
 
-    for item in data.get("indikator", []):
-        kktp_ids.append(item["kktp_id"])
-
-    if not kktp_ids:
-        return
-
-    valid_count = (
-        MonitoringKKTP.query
-        .join(MonitoringTP)
-        .filter(
-            MonitoringKKTP.id.in_(kktp_ids),
-            MonitoringTP.monitoring_mingguan_id == monitoring_mingguan_id,
+    if tp_ids:
+        valid_tp_count = (
+            MonitoringTP.query
+            .filter(
+                MonitoringTP.id.in_(tp_ids),
+                MonitoringTP.monitoring_mingguan_id == monitoring_mingguan_id,
+            )
+            .count()
         )
-        .count()
-    )
 
-    if valid_count != len(set(kktp_ids)):
-        raise ValueError("Terdapat KKTP yang tidak sesuai dengan monitoring mingguan")
+        if valid_tp_count != len(set(tp_ids)):
+            raise ValueError("Terdapat TP yang tidak sesuai dengan monitoring mingguan")
+
+    if kktp_ids:
+        valid_kktp_count = (
+            MonitoringKKTP.query
+            .join(MonitoringTP)
+            .filter(
+                MonitoringKKTP.id.in_(kktp_ids),
+                MonitoringTP.monitoring_mingguan_id == monitoring_mingguan_id,
+            )
+            .count()
+        )
+
+        if valid_kktp_count != len(set(kktp_ids)):
+            raise ValueError("Terdapat KKTP yang tidak sesuai dengan monitoring mingguan")

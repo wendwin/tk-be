@@ -1,8 +1,8 @@
-"""init database
+"""initial schema
 
-Revision ID: 51210aa18731
+Revision ID: c6544063c35d
 Revises: 
-Create Date: 2026-05-29 22:25:47.587825
+Create Date: 2026-06-01 02:35:26.100438
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '51210aa18731'
+revision = 'c6544063c35d'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -130,7 +130,7 @@ def upgrade():
     sa.Column('guru_id', sa.Integer(), nullable=False),
     sa.Column('kelas_id', sa.Integer(), nullable=False),
     sa.Column('tahun_ajaran_id', sa.Integer(), nullable=False),
-    sa.Column('peran', sa.Enum('wali_kelas', 'pendamping', name='peran_guru_kelas_enum'), nullable=False),
+    sa.Column('peran', sa.Enum('wali kelas', 'pendamping', name='peran_guru_kelas_enum'), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.Column('updated_at', sa.DateTime(), nullable=False),
     sa.ForeignKeyConstraint(['guru_id'], ['users.id'], ),
@@ -467,18 +467,18 @@ def upgrade():
     op.create_table('monitoring_indikator',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('monitoring_siswa_id', sa.Integer(), nullable=False),
-    sa.Column('kktp_id', sa.Integer(), nullable=False),
+    sa.Column('tp_id', sa.Integer(), nullable=False),
     sa.Column('muncul', sa.Boolean(), nullable=False),
     sa.Column('kejadian_teramati', sa.Text(), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.Column('updated_at', sa.DateTime(), nullable=False),
-    sa.ForeignKeyConstraint(['kktp_id'], ['monitoring_kktp.id'], ),
     sa.ForeignKeyConstraint(['monitoring_siswa_id'], ['monitoring_siswa.id'], ),
+    sa.ForeignKeyConstraint(['tp_id'], ['monitoring_tp.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     with op.batch_alter_table('monitoring_indikator', schema=None) as batch_op:
-        batch_op.create_index(batch_op.f('ix_monitoring_indikator_kktp_id'), ['kktp_id'], unique=False)
         batch_op.create_index(batch_op.f('ix_monitoring_indikator_monitoring_siswa_id'), ['monitoring_siswa_id'], unique=False)
+        batch_op.create_index(batch_op.f('ix_monitoring_indikator_tp_id'), ['tp_id'], unique=False)
 
     op.create_table('monitoring_rekomendasi_rumah',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -503,8 +503,8 @@ def downgrade():
 
     op.drop_table('monitoring_rekomendasi_rumah')
     with op.batch_alter_table('monitoring_indikator', schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f('ix_monitoring_indikator_tp_id'))
         batch_op.drop_index(batch_op.f('ix_monitoring_indikator_monitoring_siswa_id'))
-        batch_op.drop_index(batch_op.f('ix_monitoring_indikator_kktp_id'))
 
     op.drop_table('monitoring_indikator')
     with op.batch_alter_table('monitoring_hasil_karya', schema=None) as batch_op:

@@ -88,7 +88,8 @@ def store():
         user_id = get_jwt_identity()
 
         data, files = parse_monitoring_request()
-
+        print("DATA MASUK:", data)
+        
         schema = MonitoringSiswaSchema()
         errors = schema.validate(data)
 

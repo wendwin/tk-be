@@ -20,6 +20,7 @@ from .service import (
     create_siswa_monitoring,
     update_siswa_monitoring,
     publish_siswa_monitoring,
+    get_portal_siswa_monitoring,
 )
 
 bp_monitoring_siswa = Blueprint("monitoring_siswa", __name__)
@@ -89,7 +90,7 @@ def store():
 
         data, files = parse_monitoring_request()
         print("DATA MASUK:", data)
-        
+
         schema = MonitoringSiswaSchema()
         errors = schema.validate(data)
 
@@ -176,3 +177,27 @@ def show_karya_file(filename):
 
     except Exception as e:
         return error_response(str(e), code=404)
+    
+@bp_monitoring_siswa.route("/portal", methods=["GET"])
+@role_required("orang_tua")
+def portal_index():
+    try:
+        user_id = get_jwt_identity()
+
+        page = request.args.get("page", 1, type=int)
+        per_page = request.args.get("per_page", 10, type=int)
+
+        pagination = get_portal_siswa_monitoring(
+            user_id=user_id,
+            page=page,
+            per_page=per_page,
+        )
+
+        return success_response(
+            message="Daftar monitoring anak berhasil diambil",
+            data=MonitoringSiswaListSchema(many=True).dump(pagination.items),
+            meta=format_pagination(pagination),
+        )
+
+    except Exception as e:
+        return error_response(str(e), code=500)

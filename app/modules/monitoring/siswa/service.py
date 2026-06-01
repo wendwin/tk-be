@@ -12,6 +12,9 @@ from app.models.monitoring.siswa.anekdot import MonitoringAnekdot
 from app.models.monitoring.siswa.indikator import MonitoringIndikator
 from app.models.monitoring.siswa.rekomendasi import MonitoringRekomendasi
 
+from app.models.pendaftaran.peserta_didik import PesertaDidik
+from app.models.monitoring.mingguan.monitoring import MonitoringMingguan
+
 from app.models.akademik.siswa_kelas import SiswaKelas
 from app.models.akademik.siswa import Siswa
 
@@ -264,3 +267,31 @@ def validate_detail_belongs_to_mingguan(monitoring_mingguan_id, data):
 
         if valid_kktp_count != len(set(kktp_ids)):
             raise ValueError("Terdapat KKTP yang tidak sesuai dengan monitoring mingguan")
+        
+
+def get_portal_siswa_monitoring(user_id, page=1, per_page=10):
+    query = (
+        MonitoringSiswa.query
+        .join(MonitoringSiswa.monitoring_mingguan)
+        .join(MonitoringSiswa.siswa_kelas)
+        .join(SiswaKelas.siswa)
+        .join(Siswa.peserta)
+        .options(
+            joinedload(MonitoringSiswa.monitoring_mingguan)
+            .joinedload(MonitoringMingguan.tp)
+            .joinedload(MonitoringTP.kktp),
+
+            joinedload(MonitoringSiswa.siswa_kelas)
+            .joinedload(SiswaKelas.siswa)
+            .joinedload(Siswa.peserta),
+
+            joinedload(MonitoringSiswa.karya),
+        )
+        .filter(
+            PesertaDidik.user_id == user_id,
+            MonitoringMingguan.status == "published",
+        )
+        .order_by(MonitoringMingguan.tanggal_mulai.desc())
+    )
+
+    return query.paginate(page=page, per_page=per_page, error_out=False)

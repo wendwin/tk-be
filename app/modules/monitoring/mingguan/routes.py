@@ -89,9 +89,13 @@ def store():
             code=201,
         )
 
+    except ValueError as e:
+        db.session.rollback()
+        return error_response(str(e), code=422)
+    
     except Exception as e:
         db.session.rollback()
-        return error_response(str(e), code=500)
+        return error_response("Terjadi kesalahan pada server", code=500)
 
 
 @bp_monitoring_mingguan.route("/<int:id>", methods=["PUT"])
@@ -115,7 +119,11 @@ def update(id):
 
     except ValueError as e:
         db.session.rollback()
-        return error_response(str(e), code=404)
+    
+        message = str(e)
+        code = 404 if "tidak ditemukan" in message else 422
+    
+        return error_response(message, code=code)
 
     except Exception as e:
         db.session.rollback()

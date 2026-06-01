@@ -63,6 +63,18 @@ def get_mingguan_by_id(id):
 
 
 def create_mingguan(data, user_id):
+    existing = MonitoringMingguan.query.filter_by(
+        kelas_id=data["kelas_id"],
+        tahun_ajaran_id=data["tahun_ajaran_id"],
+        semester=data["semester"],
+        minggu=data["minggu"],
+    ).first()
+
+    if existing:
+        raise ValueError(
+            "Monitoring mingguan untuk kelas, semester, dan minggu ini sudah dibuat"
+        )
+    
     monitoring = MonitoringMingguan(
         kelas_id=data["kelas_id"],
         tahun_ajaran_id=data["tahun_ajaran_id"],
@@ -94,14 +106,36 @@ def update_mingguan(id, data):
     if not monitoring:
         raise ValueError("Data monitoring mingguan tidak ditemukan")
 
+    existing = MonitoringMingguan.query.filter(
+        MonitoringMingguan.id != monitoring.id,
+        MonitoringMingguan.kelas_id == data.get("kelas_id", monitoring.kelas_id),
+        MonitoringMingguan.tahun_ajaran_id == data.get(
+            "tahun_ajaran_id",
+            monitoring.tahun_ajaran_id
+        ),
+        MonitoringMingguan.semester == data.get("semester", monitoring.semester),
+        MonitoringMingguan.minggu == data.get("minggu", monitoring.minggu),
+    ).first()
+
+    if existing:
+        raise ValueError(
+            "Monitoring mingguan untuk kelas, semester, dan minggu ini sudah dibuat"
+        )
+
     monitoring.kelas_id = data.get("kelas_id", monitoring.kelas_id)
-    monitoring.tahun_ajaran_id = data.get("tahun_ajaran_id", monitoring.tahun_ajaran_id)
+    monitoring.tahun_ajaran_id = data.get(
+        "tahun_ajaran_id",
+        monitoring.tahun_ajaran_id
+    )
     monitoring.semester = data.get("semester", monitoring.semester)
     monitoring.minggu = data.get("minggu", monitoring.minggu)
     monitoring.topik = data.get("topik", monitoring.topik)
     monitoring.sub_topik = data.get("sub_topik", monitoring.sub_topik)
     monitoring.tanggal_mulai = data.get("tanggal_mulai", monitoring.tanggal_mulai)
-    monitoring.tanggal_selesai = data.get("tanggal_selesai", monitoring.tanggal_selesai)
+    monitoring.tanggal_selesai = data.get(
+        "tanggal_selesai",
+        monitoring.tanggal_selesai
+    )
     monitoring.status = data.get("status", monitoring.status)
 
     if data.get("replace_detail") is True:

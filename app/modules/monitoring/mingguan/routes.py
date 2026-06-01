@@ -26,7 +26,7 @@ def index():
         per_page = request.args.get("per_page", 10, type=int)
         kelas_id = request.args.get("kelas_id", type=int)
         tahun_ajaran_id = request.args.get("tahun_ajaran_id", type=int)
-        semester = request.args.get("semester", type=int)
+        semester = request.args.get("semester")
         status = request.args.get("status")
 
         pagination = get_all_mingguan(
@@ -135,7 +135,11 @@ def publish(id):
 
     except ValueError as e:
         db.session.rollback()
-        return error_response(str(e), code=404)
+
+        message = str(e)
+        code = 404 if "tidak ditemukan" in message else 422
+
+        return error_response(message, code=code)
 
     except Exception as e:
         db.session.rollback()

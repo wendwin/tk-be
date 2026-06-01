@@ -7,6 +7,7 @@ from app.models.monitoring.mingguan.tp import MonitoringTP
 from app.models.monitoring.mingguan.kktp import MonitoringKKTP
 from app.models.monitoring.mingguan.kegiatan import MonitoringKegiatan
 from app.models.monitoring.mingguan.asesmen_awal import MonitoringAsesmenAwal
+from app.models.akademik.siswa_kelas import SiswaKelas
 
 
 def get_all_mingguan(
@@ -117,6 +118,24 @@ def publish_mingguan(id):
 
     if not monitoring:
         raise ValueError("Data monitoring mingguan tidak ditemukan")
+
+    total_siswa = SiswaKelas.query.filter_by(
+        kelas_id=monitoring.kelas_id,
+        tahun_ajaran_id=monitoring.tahun_ajaran_id,
+        status="aktif"
+    ).count()
+
+    total_selesai = len(monitoring.monitoring_siswa)
+
+    if total_siswa == 0:
+        raise ValueError(
+            "Monitoring tidak dapat dipublikasikan karena belum ada siswa aktif pada kelas ini"
+        )
+
+    if total_selesai < total_siswa:
+        raise ValueError(
+            "Monitoring belum dapat dipublikasikan karena masih ada siswa yang belum diisi"
+        )
 
     monitoring.status = "published"
 

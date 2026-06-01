@@ -25,8 +25,8 @@ class MonitoringMingguan(db.Model):
 
     created_by = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
 
-    semester = db.Column(db.Integer, nullable=False)
-    minggu = db.Column(db.Integer, nullable=False)
+    semester = db.Column(db.Enum("ganjil", "genap", name="semester_monitoring_mingguan_enum"), nullable=False)
+    minggu = db.Column(db.Enum("1", "2", "3", "4", name="minggu_monitoring_mingguan_enum"), nullable=False)
 
     topik = db.Column(db.String(150), nullable=False)
     sub_topik = db.Column(db.String(150), nullable=False)

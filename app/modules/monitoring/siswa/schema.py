@@ -1,18 +1,58 @@
-from marshmallow import Schema, fields, validate
+from marshmallow import Schema, fields, validate, ValidationError
+
+def wajib_isi(value, label):
+    if value is None or not str(value).strip():
+        raise ValidationError(f"{label} wajib diisi")
+
+
+from marshmallow import Schema, fields, validate, validates, ValidationError
+
+
+def wajib_isi(value, label):
+    if value is None or not str(value).strip():
+        raise ValidationError(f"{label} wajib diisi")
 
 
 class MonitoringKaryaInputSchema(Schema):
-    kktp_id = fields.Int(required=True)
-    kegiatan = fields.Str(required=True)
+    kktp_id = fields.Int(required=True, error_messages={
+        "required": "KKTP wajib dipilih",
+        "null": "KKTP wajib dipilih",
+        "invalid": "KKTP tidak valid",
+    })
+    kegiatan = fields.Str(required=True, error_messages={"required": "Kegiatan wajib diisi"})
     foto = fields.Str(allow_none=True)
-    deskripsi = fields.Str(required=True)
-    analisa = fields.Str(required=True)
+    deskripsi = fields.Str(required=True, error_messages={"required": "Deskripsi aktivitas wajib diisi"})
+    analisa = fields.Str(required=True, error_messages={"required": "Analisa guru wajib diisi"})
+
+    @validates("kegiatan")
+    def validate_kegiatan(self, value, **kwargs):
+        wajib_isi(value, "Kegiatan")
+
+    @validates("deskripsi")
+    def validate_deskripsi(self, value, **kwargs):
+        wajib_isi(value, "Deskripsi aktivitas")
+
+    @validates("analisa")
+    def validate_analisa(self, value, **kwargs):
+        wajib_isi(value, "Analisa guru")
 
 
 class MonitoringAnekdotInputSchema(Schema):
-    kktp_id = fields.Int(required=True)
-    waktu = fields.DateTime(required=True)
-    catatan = fields.Str(required=True)
+    kktp_id = fields.Int(required=True, error_messages={
+        "required": "KKTP wajib dipilih",
+        "null": "KKTP wajib dipilih",
+        "invalid": "KKTP tidak valid",
+    })
+    waktu = fields.DateTime(required=True, error_messages={
+        "required": "Waktu observasi wajib diisi",
+        "null": "Waktu observasi wajib diisi",
+        "invalid": "Waktu observasi tidak valid",
+    })
+    catatan = fields.Str(required=True, error_messages={"required": "Catatan observasi wajib diisi"})
+
+    @validates("catatan")
+    def validate_catatan(self, value, **kwargs):
+        wajib_isi(value, "Catatan observasi")
 
 
 class MonitoringIndikatorInputSchema(Schema):
@@ -28,6 +68,10 @@ class MonitoringRekomendasiInputSchema(Schema):
     )
     tips = fields.Str(required=True)
 
+    @validates("tips")
+    def validate_tips(self, value, **kwargs):
+        wajib_isi(value, "Tips untuk orang tua")
+
 
 class MonitoringSiswaSchema(Schema):
     id = fields.Int(dump_only=True)
@@ -35,11 +79,11 @@ class MonitoringSiswaSchema(Schema):
     monitoring_mingguan_id = fields.Int(required=True)
     siswa_kelas_id = fields.Int(required=True)
 
-    ringkasan = fields.Str(allow_none=True)
+    ringkasan = fields.Str(required=True, error_messages={"required": "Ringkasan perkembangan wajib diisi"})
 
     status = fields.Str(
         required=False,
-        validate=validate.OneOf(["draft", "published"])
+        validate=validate.OneOf(["draft", "published"], error="Status tidak valid")
     )
 
     replace_detail = fields.Bool(required=False)
@@ -47,7 +91,11 @@ class MonitoringSiswaSchema(Schema):
     karya = fields.List(fields.Nested(MonitoringKaryaInputSchema), required=False)
     anekdot = fields.List(fields.Nested(MonitoringAnekdotInputSchema), required=False)
     indikator = fields.List(fields.Nested(MonitoringIndikatorInputSchema), required=False)
-    rekomendasi = fields.List(fields.Nested(MonitoringRekomendasiInputSchema), required=False)
+    rekomendasi = fields.List(fields.Nested(MonitoringRekomendasiInputSchema),required=False)
+
+    @validates("ringkasan")
+    def validate_ringkasan(self, value, **kwargs):
+        wajib_isi(value, "Ringkasan perkembangan")
 
 
 class MonitoringKKTPMiniSchema(Schema):
@@ -77,7 +125,7 @@ class MonitoringAsesmenAwalMiniSchema(Schema):
 
 class MonitoringMingguanMiniSchema(Schema):
     id = fields.Int()
-    semester = fields.Int()
+    semester = fields.Str()
     minggu = fields.Int()
     topik = fields.Str()
     sub_topik = fields.Str()

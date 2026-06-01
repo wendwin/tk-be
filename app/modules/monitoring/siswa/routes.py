@@ -61,7 +61,7 @@ def index():
         )
 
     except Exception as e:
-        return error_response(str(e), code=500)
+        return error_response("Terjadi kesalahan pada server", code=500)
 
 
 @bp_monitoring_siswa.route("/<int:id>", methods=["GET"])
@@ -79,7 +79,7 @@ def show(id):
         return error_response(str(e), code=404)
 
     except Exception as e:
-        return error_response(str(e), code=500)
+        return error_response("Terjadi kesalahan pada server", code=500)
 
 
 @bp_monitoring_siswa.route("", methods=["POST"])
@@ -111,7 +111,7 @@ def store():
 
     except Exception as e:
         db.session.rollback()
-        return error_response(str(e), code=500)
+        return error_response("Terjadi kesalahan pada server", code=500)
 
 
 @bp_monitoring_siswa.route("/<int:id>", methods=["PUT"])
@@ -139,7 +139,7 @@ def update(id):
 
     except Exception as e:
         db.session.rollback()
-        return error_response(str(e), code=500)
+        return error_response("Terjadi kesalahan pada server", code=500)
 
 
 @bp_monitoring_siswa.route("/<int:id>/publish", methods=["PUT"])
@@ -159,7 +159,8 @@ def publish(id):
 
     except Exception as e:
         db.session.rollback()
-        return error_response(str(e), code=500)
+        return error_response("Terjadi kesalahan pada server", code=500)
+
     
 
 @bp_monitoring_siswa.route("/file/karya/<path:filename>", methods=["GET"])
@@ -176,7 +177,7 @@ def show_karya_file(filename):
         return send_from_directory(folder, filename)
 
     except Exception as e:
-        return error_response(str(e), code=404)
+        return error_response("File tidak ditemukan", code=404)
     
 @bp_monitoring_siswa.route("/portal", methods=["GET"])
 @role_required("orang_tua")
@@ -200,4 +201,4 @@ def portal_index():
         )
 
     except Exception as e:
-        return error_response(str(e), code=500)
+        return error_response("Terjadi kesalahan pada server", code=500)

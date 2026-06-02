@@ -47,7 +47,7 @@ def index():
         )
 
     except Exception as e:
-        return error_response(str(e), code=500)
+        return error_response("Terjadi kesalahan pada server", code=500)
 
 
 @bp_monitoring_mingguan.route("/<int:id>", methods=["GET"])
@@ -65,7 +65,7 @@ def show(id):
         return error_response(str(e), code=404)
 
     except Exception as e:
-        return error_response(str(e), code=500)
+        return error_response("Terjadi kesalahan pada server", code=500)
 
 
 @bp_monitoring_mingguan.route("", methods=["POST"])
@@ -127,7 +127,7 @@ def update(id):
 
     except Exception as e:
         db.session.rollback()
-        return error_response(str(e), code=500)
+        return error_response("Terjadi kesalahan pada server", code=500)
 
 
 @bp_monitoring_mingguan.route("/<int:id>/publish", methods=["PUT"])
@@ -151,4 +151,4 @@ def publish(id):
 
     except Exception as e:
         db.session.rollback()
-        return error_response(str(e), code=500)
+        return error_response("Terjadi kesalahan pada server", code=500)

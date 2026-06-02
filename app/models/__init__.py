@@ -10,3 +10,5 @@ from app.models.asesmen import *
 from app.models.observasi import *
 # model akademik
 from app.models.akademik import *
+# model monitoring
+from app.models.monitoring import *

@@ -21,7 +21,7 @@ class GuruKelas(db.Model):
     kelas_id = db.Column(db.Integer,db.ForeignKey("kelas.id"),nullable=False,index=True)
     tahun_ajaran_id = db.Column(db.Integer,db.ForeignKey("tahun_ajaran.id"),nullable=False,index=True)
 
-    peran = db.Column(db.Enum("wali_kelas","pendamping",name="peran_guru_kelas_enum"),nullable=False,default="wali_kelas")
+    peran = db.Column(db.Enum("wali kelas","pendamping",name="peran_guru_kelas_enum"),nullable=False,default="wali_kelas")
 
     guru = db.relationship("User",backref="guru_kelas")
     kelas = db.relationship("Kelas",backref="guru_kelas")

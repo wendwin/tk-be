@@ -10,7 +10,7 @@ bp_asesmen = Blueprint('asesmen', __name__)
 
 # get all
 @bp_asesmen.route('/pertanyaan', methods=['GET'])
-@role_required('admin', 'orang_tua')
+@role_required('admin', 'orang_tua', 'guru')
 def index_pertanyaan():
     data = get_all_pertanyaan_service()
     schema = AsesmenPertanyaanSchema(many=True)
@@ -121,7 +121,7 @@ def delete_pertanyaan(id):
 # jawaban asesmen
 # get jawaban
 @bp_asesmen.route('/jawaban/<int:id_pendaftaran>', methods=['GET'])
-@role_required('admin', 'orang_tua')
+@role_required('admin', 'orang_tua', 'guru')
 def get_jawaban(id_pendaftaran):
     data = get_jawaban_by_pendaftaran(id_pendaftaran)
 
@@ -142,7 +142,7 @@ def get_jawaban(id_pendaftaran):
 
 # create
 @bp_asesmen.route('/jawaban', methods=['POST'])
-@role_required('admin', 'orang_tua')
+@role_required('admin', 'orang_tua', 'guru')
 def store_jawaban():
     try:
         data = request.get_json()

@@ -2,6 +2,7 @@ from flask import Blueprint, request
 
 from app.utils.responses import success_response, error_response
 from app.utils.decorators import role_required
+from flask_jwt_extended import get_jwt_identity
 
 from app.modules.akademik.guru_kelas.schema import (
     GuruKelasSchema,
@@ -15,6 +16,7 @@ from app.modules.akademik.guru_kelas.service import (
     create_guru_kelas,
     update_guru_kelas,
     delete_guru_kelas,
+    get_my_guru_kelas,
 )
 
 
@@ -119,6 +121,26 @@ def destroy(id):
 
     except ValueError as e:
         return error_response(str(e), 404)
+
+    except Exception as e:
+        return error_response(str(e), 500)
+    
+
+@bp_guru_kelas.route("/me", methods=["GET"])
+@role_required("guru")
+def me():
+    try:
+        user_id = get_jwt_identity()
+
+        guru_kelas = get_my_guru_kelas(user_id)
+
+        schema = GuruKelasSchema(many=True)
+        data = schema.dump(guru_kelas)
+
+        return success_response(
+            message="Berhasil mengambil data kelas guru",
+            data=data,
+        )
 
     except Exception as e:
         return error_response(str(e), 500)

@@ -471,6 +471,12 @@ def get_by_user_id(user_id):
     return (
         Pendaftaran.query
         .join(PesertaDidik)
+        .options(
+            joinedload(Pendaftaran.peserta),
+            joinedload(Pendaftaran.tahun_ajaran),
+            joinedload(Pendaftaran.dokumen),
+        )
         .filter(PesertaDidik.user_id == user_id)
+        .order_by(Pendaftaran.created_at.desc())
         .all()
     )

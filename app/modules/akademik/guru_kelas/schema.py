@@ -50,7 +50,7 @@ class CreateGuruKelasSchema(Schema):
     tahun_ajaran_id = fields.Int(required=True)
     peran = fields.Str(
         required=True,
-        validate=validate.OneOf(["wali_kelas", "pendamping"])
+        validate=validate.OneOf(["wali kelas", "pendamping"])
     )
 
 
@@ -60,5 +60,5 @@ class UpdateGuruKelasSchema(Schema):
     tahun_ajaran_id = fields.Int(required=False)
     peran = fields.Str(
         required=False,
-        validate=validate.OneOf(["wali_kelas", "pendamping"])
+        validate=validate.OneOf(["wali kelas", "pendamping"])
     )

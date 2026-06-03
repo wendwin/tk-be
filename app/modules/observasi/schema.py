@@ -28,6 +28,7 @@ class CreateKPSPPertanyaanSchema(Schema):
     aspek_perkembangan = fields.String(required=True)
     kemampuan_anak = fields.String(required=True)
     urutan = fields.Integer(required=True)
+    is_active = fields.Boolean(load_default=True)
 
 
 class UpdateKPSPPertanyaanSchema(Schema):
@@ -35,6 +36,7 @@ class UpdateKPSPPertanyaanSchema(Schema):
     aspek_perkembangan = fields.String(required=True)
     kemampuan_anak = fields.String(required=True)
     urutan = fields.Integer(required=True)
+    is_active = fields.Boolean(load_default=True)
 
 class KPSPJawabanItemSchema(Schema):
     pertanyaan_id = fields.Integer(required=True)

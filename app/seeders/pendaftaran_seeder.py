@@ -337,16 +337,24 @@ def seed_pendaftaran():
             )
 
             for idx, pertanyaan in enumerate(kpsp_pertanyaan):
-                jawaban = "tidak" if ada_catatan and idx in [2, 4] else "ya"
+                jawaban = "tidak" if ada_catatan and idx in [2, 4] else "ya"            
 
                 db.session.add(
                     KPSPJawaban(
                         pendaftaran_id=pendaftaran.id,
-                        pertanyaan_id=pertanyaan.id,
+                        pertanyaan_id=pertanyaan.id,            
+
+                        snapshot_usia_bulan=pertanyaan.usia_bulan,
+                        snapshot_aspek_perkembangan=pertanyaan.aspek_perkembangan,
+                        snapshot_kemampuan_anak=pertanyaan.kemampuan_anak,
+                        snapshot_urutan=pertanyaan.urutan,          
+
                         jawaban=jawaban,
-                        keterangan="Perlu stimulasi lanjutan"
-                        if jawaban == "tidak"
-                        else "",
+                        keterangan=(
+                            "Perlu stimulasi lanjutan"
+                            if jawaban == "tidak"
+                            else ""
+                        ),
                         catatan=catatan,
                     )
                 )

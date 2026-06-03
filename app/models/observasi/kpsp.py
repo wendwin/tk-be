@@ -11,6 +11,7 @@ class KPSPPertanyaan(db.Model):
     aspek_perkembangan = db.Column(db.String(100),nullable=False)
     kemampuan_anak = db.Column(db.Text,nullable=False)
     urutan = db.Column(db.Integer,nullable=False)
+    is_active = db.Column(db.Boolean, nullable=False, default=True)
 
     created_at = db.Column(db.DateTime,nullable=False,default=datetime.utcnow)
     updated_at = db.Column(db.DateTime,nullable=False,default=datetime.utcnow,onupdate=datetime.utcnow)
@@ -21,16 +22,20 @@ class KPSPJawaban(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
 
-    pendaftaran_id = db.Column(db.Integer,db.ForeignKey('pendaftaran.id'),nullable=False,index=True)
+    pendaftaran_id = db.Column(db.Integer, db.ForeignKey('pendaftaran.id'), nullable=False, index=True)
+    pertanyaan_id = db.Column(db.Integer, db.ForeignKey('kpsp_pertanyaan.id'), nullable=False)
 
-    pertanyaan_id = db.Column(db.Integer,db.ForeignKey('kpsp_pertanyaan.id'),nullable=False)
+    snapshot_usia_bulan = db.Column(db.Integer, nullable=False)
+    snapshot_aspek_perkembangan = db.Column(db.String(100), nullable=False)
+    snapshot_kemampuan_anak = db.Column(db.Text, nullable=False)
+    snapshot_urutan = db.Column(db.Integer, nullable=False)
 
-    jawaban = db.Column(db.Enum('ya', 'tidak', name='jawaban_kpsp_enum'),nullable=False)
+    jawaban = db.Column(db.Enum('ya', 'tidak', name='jawaban_kpsp_enum'), nullable=False)
     keterangan = db.Column(db.Text)
     catatan = db.Column(db.Text)
 
-    created_at = db.Column(db.DateTime,nullable=False,default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime,nullable=False,default=datetime.utcnow,onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     pertanyaan = db.relationship('KPSPPertanyaan')
-    pendaftaran = db.relationship('Pendaftaran',backref='kpsp_jawaban')
+    pendaftaran = db.relationship('Pendaftaran', backref='kpsp_jawaban')

@@ -18,7 +18,8 @@ get_all_kpsp_pertanyaan_service,
 get_detail_kpsp_pertanyaan, 
 create_kpsp_pertanyaan, 
 update_kpsp_pertanyaan, 
-delete_kpsp_pertanyaan
+delete_kpsp_pertanyaan,
+restore_kpsp_pertanyaan
 )
 
 from app.utils.decorators import role_required
@@ -442,6 +443,29 @@ def detail_kpsp(pendaftaran_id):
         return success_response(
             message='Berhasil mengambil hasil KPSP',
             data=result
+        )
+
+    except ValueError as e:
+        return error_response(
+            message=str(e),
+            code=404
+        )
+
+    except Exception as e:
+        return error_response(
+            message='Terjadi kesalahan',
+            errors=str(e),
+            code=500
+        )
+    
+@bp_observasi.route('/kpsp/pertanyaan/<int:id>/restore', methods=['PUT'])
+@role_required('admin')
+def restore_kpsp_pertanyaan_route(id):
+    try:
+        restore_kpsp_pertanyaan(id)
+
+        return success_response(
+            message='Pertanyaan KPSP berhasil diaktifkan'
         )
 
     except ValueError as e:

@@ -269,7 +269,8 @@ def get_all_kpsp_pertanyaan_service():
             'usia_bulan': item.usia_bulan,
             'aspek_perkembangan': item.aspek_perkembangan,
             'kemampuan_anak': item.kemampuan_anak,
-            'urutan': item.urutan
+            'urutan': item.urutan,
+            'is_active': item.is_active
         })
 
     return result
@@ -288,7 +289,8 @@ def get_detail_kpsp_pertanyaan(id):
         'usia_bulan': pertanyaan.usia_bulan,
         'aspek_perkembangan': pertanyaan.aspek_perkembangan,
         'kemampuan_anak': pertanyaan.kemampuan_anak,
-        'urutan': pertanyaan.urutan
+        'urutan': pertanyaan.urutan,
+        'is_active': pertanyaan.is_active
     }
 
 
@@ -327,12 +329,18 @@ def delete_kpsp_pertanyaan(id):
     pertanyaan = KPSPPertanyaan.query.get(id)
 
     if not pertanyaan:
-        raise ValueError(
-            'Pertanyaan KPSP tidak ditemukan'
-        )
+        raise ValueError('Pertanyaan KPSP tidak ditemukan')
 
-    db.session.delete(pertanyaan)
+    pertanyaan.is_active = False
+    db.session.commit()
 
+def restore_kpsp_pertanyaan(id):
+    pertanyaan = KPSPPertanyaan.query.get(id)
+
+    if not pertanyaan:
+        raise ValueError('Pertanyaan KPSP tidak ditemukan')
+
+    pertanyaan.is_active = True
     db.session.commit()
 
 
@@ -354,10 +362,16 @@ def get_kpsp_pertanyaan_by_pendaftaran(pendaftaran_id):
     )
 
     pertanyaan = (
-        KPSPPertanyaan.query
-        .filter_by(usia_bulan=kelompok_usia)
-        .order_by(KPSPPertanyaan.urutan.asc())
-        .all()
+       KPSPPertanyaan.query
+       .filter_by(
+           usia_bulan=kelompok_usia,
+           is_active=True
+       )
+       .order_by(
+           KPSPPertanyaan.urutan.asc(),
+           KPSPPertanyaan.id.asc()
+       )
+       .all()
     )
 
     result = []
@@ -393,10 +407,20 @@ def create_kpsp(pendaftaran_id, data):
         raise ValueError("Observasi KPSP sudah diisi")
 
     for item in data['jawaban']:
+        pertanyaan = KPSPPertanyaan.query.get(item['pertanyaan_id'])
+
+        if not pertanyaan:
+            raise ValueError('Pertanyaan KPSP tidak ditemukan')
 
         jawaban = KPSPJawaban(
             pendaftaran_id=pendaftaran_id,
             pertanyaan_id=item['pertanyaan_id'],
+
+            snapshot_usia_bulan=pertanyaan.usia_bulan,
+            snapshot_aspek_perkembangan=pertanyaan.aspek_perkembangan,
+            snapshot_kemampuan_anak=pertanyaan.kemampuan_anak,
+            snapshot_urutan=pertanyaan.urutan,
+
             jawaban=item['jawaban'],
             keterangan=item.get('keterangan'),
             catatan=data.get('catatan')
@@ -412,29 +436,31 @@ def get_kpsp_result(pendaftaran_id):
     pendaftaran = Pendaftaran.query.get(pendaftaran_id)
 
     if not pendaftaran:
-        raise ValueError(
-            'Pendaftaran tidak ditemukan'
-        )
+        raise ValueError('Pendaftaran tidak ditemukan')
 
     jawaban = (
         KPSPJawaban.query
         .filter_by(pendaftaran_id=pendaftaran_id)
+        .order_by(
+            KPSPJawaban.snapshot_urutan.asc(),
+            KPSPJawaban.id.asc()
+        )
         .all()
     )
 
     result = []
-
     catatan = None
 
-    for item in jawaban:
+    for index, item in enumerate(jawaban, start=1):
         catatan = item.catatan
 
         result.append({
             'id': item.id,
             'pertanyaan_id': item.pertanyaan_id,
-            'usia_bulan': item.pertanyaan.usia_bulan,
-            'aspek_perkembangan': item.pertanyaan.aspek_perkembangan,
-            'kemampuan_anak': item.pertanyaan.kemampuan_anak,
+            'usia_bulan': item.snapshot_usia_bulan,
+            'aspek_perkembangan': item.snapshot_aspek_perkembangan,
+            'kemampuan_anak': item.snapshot_kemampuan_anak,
+            'urutan': index,
             'jawaban': item.jawaban,
             'keterangan': item.keterangan
         })

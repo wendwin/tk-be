@@ -1,13 +1,16 @@
 from marshmallow import Schema, fields, validate
 
 class CreateGPPHPertanyaanSchema(Schema):
-    nomor = fields.Integer(required=True)
+    urutan = fields.Integer(required=True)
     pertanyaan = fields.String(required=True)
+    is_active = fields.Boolean(load_default=True)
+
 
 class UpdateGPPHPertanyaanSchema(Schema):
-    nomor = fields.Integer(required=True)
+    urutan = fields.Integer(required=True)
     pertanyaan = fields.String(required=True)
-    
+    is_active = fields.Boolean(load_default=True)
+
 class GPPHJawabanItemSchema(Schema):
     pertanyaan_id = fields.Integer(required=True)
 
@@ -20,7 +23,7 @@ class CreateGPPHSchema(Schema):
     jawaban = fields.List(
         fields.Nested(GPPHJawabanItemSchema),
         required=True,
-        validate=validate.Length(equal=10)
+        validate=validate.Length(min=1)
     )
 
 class CreateKPSPPertanyaanSchema(Schema):

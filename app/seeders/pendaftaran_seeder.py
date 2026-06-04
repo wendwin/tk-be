@@ -43,7 +43,7 @@ def seed_pendaftaran():
         return
 
     gpph_pertanyaan = GPPHPertanyaan.query.order_by(
-        GPPHPertanyaan.nomor.asc()
+        GPPHPertanyaan.urutan.asc()
     ).all()
 
     if not gpph_pertanyaan:
@@ -319,6 +319,10 @@ def seed_pendaftaran():
                     GPPHJawaban(
                         pendaftaran_id=pendaftaran.id,
                         pertanyaan_id=pertanyaan.id,
+
+                        snapshot_urutan=pertanyaan.urutan,
+                        snapshot_pertanyaan=pertanyaan.pertanyaan,
+
                         nilai=nilai,
                     )
                 )

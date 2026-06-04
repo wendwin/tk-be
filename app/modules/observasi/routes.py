@@ -11,7 +11,8 @@ get_detail_gpph_pertanyaan,
 create_gpph_pertanyaan, 
 update_gpph_pertanyaan, 
 delete_gpph_pertanyaan, 
-create_gpph, get_gpph_result, 
+create_gpph, get_gpph_result,
+restore_gpph_pertanyaan,
 get_kpsp_pertanyaan_by_pendaftaran, 
 create_kpsp, get_kpsp_result, 
 get_all_kpsp_pertanyaan_service, 
@@ -78,7 +79,11 @@ def update_status(id):
 @role_required('admin', 'guru')
 def get_all_gpph_pertanyaan_route():
     try:
-        result = get_all_gpph_pertanyaan()
+        active_only = request.args.get('active_only', 'false') == 'true'
+
+        result = get_all_gpph_pertanyaan(
+            active_only=active_only
+        )
 
         return success_response(
             message='Berhasil mengambil master pertanyaan GPPH',
@@ -184,7 +189,7 @@ def delete_gpph_pertanyaan_route(id):
         delete_gpph_pertanyaan(id)
 
         return success_response(
-            message='Pertanyaan GPPH berhasil dihapus'
+            message='Pertanyaan GPPH berhasil dinonaktifkan'
         )
 
     except ValueError as e:
@@ -198,7 +203,30 @@ def delete_gpph_pertanyaan_route(id):
             message='Terjadi kesalahan',
             errors=str(e),
             code=500
-        )    
+        )
+    
+@bp_observasi.route('/gpph/pertanyaan/<int:id>/restore', methods=['PUT'])
+@role_required('admin')
+def restore_gpph_pertanyaan_route(id):
+    try:
+        restore_gpph_pertanyaan(id)
+
+        return success_response(
+            message='Pertanyaan GPPH berhasil diaktifkan'
+        )
+
+    except ValueError as e:
+        return error_response(
+            message=str(e),
+            code=404
+        )
+
+    except Exception as e:
+        return error_response(
+            message='Terjadi kesalahan',
+            errors=str(e),
+            code=500
+        )
 
 # create jawaban gpph
 @bp_observasi.route('/<int:pendaftaran_id>/gpph', methods=['POST'])

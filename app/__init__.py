@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, app
 from .config import Config
 from .extensions import db, jwt, migrate, mail, limiter
 from flask_cors import CORS
@@ -69,6 +69,10 @@ def create_app():
     # tahun ajaran
     from app.modules.akademik.tahun_ajaran.routes import bp_tahun_ajaran
     app.register_blueprint(bp_tahun_ajaran,url_prefix="/api/tahun-ajaran")
+
+    # gelombang
+    from app.modules.akademik.gelombang.routes import bp_gelombang
+    app.register_blueprint(bp_gelombang, url_prefix="/api/gelombang")
 
     # monitoring mingguan
     from app.modules.monitoring.mingguan.routes import bp_monitoring_mingguan

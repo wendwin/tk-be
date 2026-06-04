@@ -1,5 +1,6 @@
 from flask import Blueprint, request
 
+from app.utils.pagination import format_pagination
 from app.utils.responses import success_response, error_response
 from app.utils.decorators import role_required
 
@@ -26,26 +27,35 @@ bp_user = Blueprint("user", __name__)
 @role_required("admin")
 def index():
     try:
+        page = request.args.get("page", 1, type=int)
+        per_page = request.args.get("per_page", 10, type=int)
+
         status = request.args.get("status", "active")
         role = request.args.get("role")
         search = request.args.get("search")
 
-        users = get_all_users(
+        pagination = get_all_users(
             role=role,
             search=search,
-            status=status
+            status=status,
+            page=page,
+            per_page=per_page
         )
+
+        schema = UserSchema(many=True)
+        data = schema.dump(pagination.items)
 
         return success_response(
             message="Berhasil mengambil data user",
-            data=UserSchema(many=True).dump(users)
+            data=data,
+            meta=format_pagination(pagination)
         )
+
+    except ValueError as e:
+        return error_response(str(e), 422)
 
     except Exception as e:
         return error_response(str(e), 500)
-    
-    except ValueError as e:
-        return error_response(str(e), 422)
 
 
 @bp_user.route("/<int:id>", methods=["GET"])

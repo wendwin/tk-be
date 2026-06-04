@@ -6,7 +6,13 @@ from app.models.auth.user import User
 from app.models.auth.role import Role
 
 
-def get_all_users(role=None, search=None, status="active"):
+def get_all_users(
+    role=None,
+    search=None,
+    status="active",
+    page=1,
+    per_page=10
+):
     allowed_status = ["active", "inactive", "all"]
 
     if status not in allowed_status:
@@ -24,9 +30,23 @@ def get_all_users(role=None, search=None, status="active"):
         query = query.filter(Role.name == role)
 
     if search:
-        query = query.filter(User.email.ilike(f"%{search}%"))
+        query = query.filter(
+            db.or_(
+                User.email.ilike(f"%{search}%"),
+                User.first_name.ilike(f"%{search}%"),
+                User.last_name.ilike(f"%{search}%"),
+            )
+        )
 
-    return query.order_by(User.created_at.desc()).all()
+    return (
+        query
+        .order_by(User.created_at.desc())
+        .paginate(
+            page=page,
+            per_page=per_page,
+            error_out=False
+        )
+    )
 
 
 def get_user_by_id(id):

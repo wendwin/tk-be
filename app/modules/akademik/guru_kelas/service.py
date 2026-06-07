@@ -142,7 +142,7 @@ def get_my_guru_kelas(user_id):
     ).first()
 
     if not tahun_ajaran_aktif:
-        raise ValueError("Tahun ajaran aktif tidak ditemukan")
+        return []
 
     guru_kelas = (
         GuruKelas.query
@@ -153,8 +153,5 @@ def get_my_guru_kelas(user_id):
         .order_by(GuruKelas.created_at.desc())
         .all()
     )
-
-    if not guru_kelas:
-        raise ValueError("Guru belum terdaftar pada kelas aktif")
 
     return guru_kelas

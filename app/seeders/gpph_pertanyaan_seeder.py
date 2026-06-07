@@ -23,14 +23,14 @@ def seed_gpph_pertanyaan():
     for index, item in enumerate(data, start=1):
 
         exists = GPPHPertanyaan.query.filter_by(
-            nomor=index
+            urutan=index
         ).first()
 
         if exists:
             continue
 
         pertanyaan = GPPHPertanyaan(
-            nomor=index,
+            urutan=index,
             pertanyaan=item
         )
 

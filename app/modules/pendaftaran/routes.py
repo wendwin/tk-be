@@ -1,5 +1,5 @@
 import os
-from flask_jwt_extended import get_jwt_identity, jwt_required
+from flask_jwt_extended import get_jwt, get_jwt_identity, jwt_required
 from app.extensions import db
 from flask import Blueprint, request, redirect, send_from_directory, json, current_app, send_file
 
@@ -73,13 +73,23 @@ def store():
 @bp_pendaftaran.route('/<int:id>', methods=['GET'])
 @role_required('admin', 'orang_tua', 'guru')
 def show(id):
-    pendaftaran = get_by_id(id)
+    user_id = get_jwt_identity()
+    role = get_jwt().get("role")
+
+    pendaftaran = get_by_id(
+        id=id,
+        user_id=user_id if role == "orang_tua" else None
+    )
 
     if not pendaftaran:
         return error_response("Data tidak ditemukan", code=404)
 
     schema = PendaftaranSchema()
-    return success_response(data=schema.dump(pendaftaran), message="Data pendaftaran berhasil diambil", code=200)
+    return success_response(
+        data=schema.dump(pendaftaran),
+        message="Data pendaftaran berhasil diambil",
+        code=200
+    )
 
 # update 
 @bp_pendaftaran.route('/<int:id>', methods=['PUT'])

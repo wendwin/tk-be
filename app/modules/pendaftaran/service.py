@@ -194,25 +194,30 @@ def create(data, user_id):
 
     return pendaftaran
 
-def get_by_id(id):
-    return Pendaftaran.query.options(
-        joinedload(Pendaftaran.peserta)
-            .joinedload(PesertaDidik.kesehatan),
+def get_by_id(id, user_id=None):
+    query = (
+        Pendaftaran.query
+        .join(Pendaftaran.peserta)
+        .options(
+            joinedload(Pendaftaran.peserta)
+                .joinedload(PesertaDidik.kesehatan),
+            joinedload(Pendaftaran.peserta)
+                .joinedload(PesertaDidik.orang_tua),
+            joinedload(Pendaftaran.peserta)
+                .joinedload(PesertaDidik.alamat_domisili),
+            joinedload(Pendaftaran.peserta)
+                .joinedload(PesertaDidik.alamat_kk),
+            joinedload(Pendaftaran.peserta)
+                .joinedload(PesertaDidik.informasi),
+            joinedload(Pendaftaran.dokumen)
+        )
+        .filter(Pendaftaran.id == id)
+    )
 
-        joinedload(Pendaftaran.peserta)
-            .joinedload(PesertaDidik.orang_tua),
+    if user_id:
+        query = query.filter(PesertaDidik.user_id == user_id)
 
-        joinedload(Pendaftaran.peserta)
-            .joinedload(PesertaDidik.alamat_domisili),
-
-        joinedload(Pendaftaran.peserta)
-            .joinedload(PesertaDidik.alamat_kk),
-
-        joinedload(Pendaftaran.peserta)
-            .joinedload(PesertaDidik.informasi),
-
-        joinedload(Pendaftaran.dokumen)
-    ).filter_by(id=id).first()
+    return query.first()
 
 # update 
 def update_pendaftaran_service(pendaftaran, data):

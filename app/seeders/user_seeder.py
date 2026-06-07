@@ -17,8 +17,8 @@ def seed_users():
         },
 
         {
-            "first_name": "Budi",
-            "last_name": "Santoso",
+            "first_name": "Amelia",
+            "last_name": "Sari, S.Pd.",
             "email": os.getenv("GURU1_EMAIL"),
             "password": os.getenv("GURU1_PASSWORD"),
             "role": "guru",
@@ -26,15 +26,15 @@ def seed_users():
 
         {
             "first_name": "Siti",
-            "last_name": "Aminah",
+            "last_name": "Aminah, S.Pd.",
             "email": os.getenv("GURU2_EMAIL"),
             "password": os.getenv("GURU2_PASSWORD"),
             "role": "guru",
         },
 
         {
-            "first_name": "Ahmad",
-            "last_name": "Fauzi",
+            "first_name": "Putri",
+            "last_name": "Lestari, S.Pd.",
             "email": os.getenv("GURU3_EMAIL"),
             "password": os.getenv("GURU3_PASSWORD"),
             "role": "guru",

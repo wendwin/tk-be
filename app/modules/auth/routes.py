@@ -23,9 +23,9 @@ def verify_email(token):
     result, status = verify_user_email(token)
 
     if status == 200:
-        return redirect(f"{url}/login?verified=true") 
+        return redirect(f"{url}/verify-email?status=success")
 
-    return result, status
+    return redirect(f"{url}/verify-email?status=failed")
 
 @auth_bp.route('/login', methods=['POST'])
 @limiter.limit("10 per minute; 50 per hour")

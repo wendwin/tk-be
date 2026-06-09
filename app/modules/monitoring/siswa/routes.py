@@ -36,7 +36,7 @@ def parse_monitoring_request():
 
 
 @bp_monitoring_siswa.route("", methods=["GET"])
-@role_required("admin", "guru", "orang_tua")
+@role_required("admin", "guru", "orang_tua", "kepsek")
 def index():
     try:
         page = request.args.get("page", 1, type=int)

@@ -148,7 +148,7 @@ def restore_pertanyaan(id):
 
 
 @bp_asesmen.route('/jawaban/<int:id_pendaftaran>', methods=['GET'])
-@role_required('admin', 'orang_tua', 'guru')
+@role_required('admin', 'orang_tua', 'guru', 'kepsek')
 def get_jawaban(id_pendaftaran):
     data = get_jawaban_by_pendaftaran(id_pendaftaran)
 

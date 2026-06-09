@@ -76,7 +76,7 @@ def update_status(id):
 """ GPPH """
 # get all master pertanyaan gpph
 @bp_observasi.route('/gpph/pertanyaan', methods=['GET'])
-@role_required('admin', 'guru')
+@role_required('admin', 'guru', 'kepsek')
 def get_all_gpph_pertanyaan_route():
     try:
         active_only = request.args.get('active_only', 'false') == 'true'
@@ -259,7 +259,7 @@ def store_gpph(pendaftaran_id):
 
 # detail hasil gpph
 @bp_observasi.route('/<int:pendaftaran_id>/gpph', methods=['GET'])
-@role_required('admin', 'guru')
+@role_required('admin', 'guru', 'kepsek')
 def detail_gpph(pendaftaran_id):
     try:
         result = get_gpph_result(pendaftaran_id)
@@ -409,7 +409,7 @@ def delete_kpsp_pertanyaan_route(id):
 
 # get pertanyaan kpsp berdasarkan usia
 @bp_observasi.route('/<int:pendaftaran_id>/kpsp/soal', methods=['GET'])
-@role_required('admin', 'guru')
+@role_required('admin', 'guru', 'kepsek')
 def get_kpsp_pertanyaan(pendaftaran_id):
     try:
         result = get_kpsp_pertanyaan_by_pendaftaran(pendaftaran_id)
@@ -462,7 +462,7 @@ def store_kpsp(pendaftaran_id):
     
 # detail hasil kpsp
 @bp_observasi.route('/<int:pendaftaran_id>/kpsp',methods=['GET'])
-@role_required('admin', 'guru')
+@role_required('admin', 'guru', 'kepsek')
 def detail_kpsp(pendaftaran_id):
     try:
         result = get_kpsp_result(

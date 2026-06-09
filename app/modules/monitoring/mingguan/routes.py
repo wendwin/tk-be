@@ -52,7 +52,7 @@ def index():
 
 
 @bp_monitoring_mingguan.route("/<int:id>", methods=["GET"])
-@role_required("admin", "guru")
+@role_required("admin", "guru","kepsek")
 def show(id):
     try:
         monitoring = get_mingguan_by_id(id)

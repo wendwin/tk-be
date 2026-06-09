@@ -11,7 +11,7 @@ from app.utils.pagination import format_pagination
 bp_siswa = Blueprint("siswa", __name__)
 
 @bp_siswa.route("", methods=["GET"])
-@role_required("admin", "guru")
+@role_required("admin", "guru", "kepsek")
 def index():
     try:
         page = request.args.get("page", 1, type=int)
@@ -45,7 +45,7 @@ def index():
 
 
 @bp_siswa.route("/<int:id>", methods=["GET"])
-@role_required("admin", "guru")
+@role_required("admin", "guru", "kepsek")
 def show(id):
     try:
         siswa = get_siswa_by_id(id)

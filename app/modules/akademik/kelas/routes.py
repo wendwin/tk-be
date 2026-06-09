@@ -28,7 +28,7 @@ def index():
 
 
 @bp_kelas.route("/<int:id>", methods=["GET"])
-@role_required("admin", "guru")
+@role_required("admin", "guru", 'kepsek')
 def show(id):
     try:
         kelas = get_kelas_by_id(id)

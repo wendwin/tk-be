@@ -1,4 +1,4 @@
-from flask import Blueprint, request
+from flask import Blueprint, request, send_file
 from flask_jwt_extended import get_jwt_identity
 from flask import current_app
 
@@ -15,6 +15,7 @@ from .service import (
     update_mingguan,
     publish_mingguan,
 )
+from app.utils.monitoring import generate_monitoring_mingguan_pdf
 
 bp_monitoring_mingguan = Blueprint("monitoring_mingguan", __name__)
 
@@ -158,3 +159,19 @@ def publish(id):
     except Exception as e:
         db.session.rollback()
         return error_response("Terjadi kesalahan pada server", code=500)
+    
+@bp_monitoring_mingguan.route("/<int:id>/download-pdf", methods=["GET"])
+@role_required("admin", "guru", "kepsek")
+def download_pdf(id):
+    try:
+        file_path = generate_monitoring_mingguan_pdf(id)
+
+        return send_file(
+            file_path,
+            as_attachment=True,
+            download_name="monitoring_mingguan.pdf",
+            mimetype="application/pdf"
+        )
+
+    except Exception as e:
+        return error_response(str(e), code=500)

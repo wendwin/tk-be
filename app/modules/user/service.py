@@ -107,6 +107,9 @@ def update_user(id, data):
         user.email = data["email"]
 
     if "role_id" in data:
+        if user.role and user.role.name == "orang_tua":
+            raise ValueError("Role orang tua tidak dapat diubah")
+
         role = db.session.get(Role, data["role_id"])
 
         if not role:

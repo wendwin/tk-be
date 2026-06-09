@@ -1,5 +1,6 @@
 from flask import Blueprint, request
 from flask_jwt_extended import get_jwt_identity
+from flask import current_app
 
 from app.extensions import db
 from app.utils.decorators import role_required
@@ -81,6 +82,8 @@ def store():
         if errors:
             return error_response("Validation error", errors=errors, code=422)
 
+        data = schema.load(data)
+
         monitoring = create_mingguan(data, user_id)
 
         return success_response(
@@ -95,6 +98,7 @@ def store():
     
     except Exception as e:
         db.session.rollback()
+        current_app.logger.exception(e)
         return error_response("Terjadi kesalahan pada server", code=500)
 
 
@@ -105,10 +109,12 @@ def update(id):
         data = request.get_json()
 
         schema = MonitoringMingguanSchema(partial=True)
-        errors = schema.validate(data)
+        errors = schema.validate(data)         
 
         if errors:
-            return error_response("Validation error", errors=errors, code=422)
+            return error_response("Validation error", errors=errors, code=422)         
+
+        data = schema.load(data)           
 
         monitoring = update_mingguan(id, data)
 

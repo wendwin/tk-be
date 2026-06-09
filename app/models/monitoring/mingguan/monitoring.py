@@ -1,10 +1,6 @@
 from datetime import datetime
 from app.extensions import db
 
-from datetime import datetime
-from app.extensions import db
-
-
 class MonitoringMingguan(db.Model):
     __tablename__ = "monitoring_mingguan"
 
@@ -13,6 +9,7 @@ class MonitoringMingguan(db.Model):
             "kelas_id",
             "tahun_ajaran_id",
             "semester",
+            "bulan",
             "minggu",
             name="unique_monitoring_mingguan_per_kelas"
         ),
@@ -22,10 +19,10 @@ class MonitoringMingguan(db.Model):
 
     kelas_id = db.Column(db.Integer, db.ForeignKey("kelas.id"), nullable=False, index=True)
     tahun_ajaran_id = db.Column(db.Integer, db.ForeignKey("tahun_ajaran.id"), nullable=False, index=True)
-
     created_by = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
 
     semester = db.Column(db.Enum("ganjil", "genap", name="semester_monitoring_mingguan_enum"), nullable=False)
+    bulan = db.Column(db.Integer, nullable=False)
     minggu = db.Column(db.Enum("1", "2", "3", "4", name="minggu_monitoring_mingguan_enum"), nullable=False)
 
     topik = db.Column(db.String(150), nullable=False)

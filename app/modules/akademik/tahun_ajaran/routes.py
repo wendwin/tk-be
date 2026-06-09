@@ -11,7 +11,7 @@ from app.modules.akademik.tahun_ajaran.service import get_all_tahun_ajaran,get_t
 bp_tahun_ajaran = Blueprint("tahun_ajaran", __name__)
 
 @bp_tahun_ajaran.route("", methods=["GET"])
-@role_required("admin", "guru")
+@role_required("admin", "guru", "kepsek")
 def index():
     try:
         tahun_ajaran = get_all_tahun_ajaran()
@@ -26,7 +26,7 @@ def index():
 
 
 @bp_tahun_ajaran.route("/<int:id>", methods=["GET"])
-@role_required("admin", "guru")
+@role_required("admin", "guru", "kepsek")
 def show(id):
     try:
         tahun_ajaran = get_tahun_ajaran_by_id(id)

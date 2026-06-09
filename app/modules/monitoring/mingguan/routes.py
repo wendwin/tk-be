@@ -20,7 +20,7 @@ bp_monitoring_mingguan = Blueprint("monitoring_mingguan", __name__)
 
 
 @bp_monitoring_mingguan.route("", methods=["GET"])
-@role_required("admin", "guru")
+@role_required("admin", "guru", "kepsek")
 def index():
     try:
         page = request.args.get("page", 1, type=int)

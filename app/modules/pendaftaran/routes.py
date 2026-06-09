@@ -18,7 +18,7 @@ bp_pendaftaran = Blueprint('pendaftaran', __name__)
 
 # get all
 @bp_pendaftaran.route('', methods=['GET'])
-@role_required('admin', 'orang_tua', 'guru')
+@role_required('admin', 'orang_tua', 'guru', 'kepsek')
 def index():
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 10, type=int)

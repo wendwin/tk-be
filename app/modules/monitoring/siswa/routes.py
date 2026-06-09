@@ -1,6 +1,6 @@
 import os
 import json
-from flask import Blueprint, request, send_from_directory
+from flask import Blueprint, request, send_from_directory, send_file
 from flask_jwt_extended import get_jwt_identity
 
 from app.extensions import db
@@ -22,6 +22,7 @@ from .service import (
     publish_siswa_monitoring,
     get_portal_siswa_monitoring,
 )
+from app.utils.monitoring_siswa import generate_monitoring_siswa_pdf
 
 bp_monitoring_siswa = Blueprint("monitoring_siswa", __name__)
 
@@ -65,7 +66,7 @@ def index():
 
 
 @bp_monitoring_siswa.route("/<int:id>", methods=["GET"])
-@role_required("admin", "guru", "orang_tua")
+@role_required("admin", "guru", "orang_tua", "kepsek")
 def show(id):
     try:
         monitoring = get_siswa_monitoring_by_id(id)
@@ -164,7 +165,7 @@ def publish(id):
     
 
 @bp_monitoring_siswa.route("/file/karya/<path:filename>", methods=["GET"])
-@role_required("admin", "guru", "orang_tua")
+@role_required("admin", "guru", "orang_tua", "kepsek")
 def show_karya_file(filename):
     try:
         folder = os.path.join(
@@ -202,3 +203,18 @@ def portal_index():
 
     except Exception as e:
         return error_response("Terjadi kesalahan pada server", code=500)
+    
+@bp_monitoring_siswa.route("/<int:id>/download-pdf", methods=["GET"])
+@role_required("admin", "guru", "kepsek")
+def download_pdf(id):
+    try:
+        file_path = generate_monitoring_siswa_pdf(id)
+
+        return send_file(
+            file_path,
+            as_attachment=True,
+            download_name="monitoring_siswa.pdf"
+        )
+
+    except Exception as e:
+        return error_response(str(e), 500)

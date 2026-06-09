@@ -17,4 +17,4 @@ def seed_all():
     seed_gpph_pertanyaan()
     seed_kpsp_pertanyaan()
     seed_kelas()
-    seed_pendaftaran()
+    # seed_pendaftaran()

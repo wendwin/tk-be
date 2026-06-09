@@ -1,5 +1,6 @@
-from flask import Blueprint, request
+from flask import Blueprint, request, send_file
 from flask_jwt_extended import get_jwt_identity
+from flask import current_app
 
 from app.extensions import db
 from app.utils.decorators import role_required
@@ -14,12 +15,13 @@ from .service import (
     update_mingguan,
     publish_mingguan,
 )
+from app.utils.monitoring import generate_monitoring_mingguan_pdf
 
 bp_monitoring_mingguan = Blueprint("monitoring_mingguan", __name__)
 
 
 @bp_monitoring_mingguan.route("", methods=["GET"])
-@role_required("admin", "guru")
+@role_required("admin", "guru", "kepsek")
 def index():
     try:
         page = request.args.get("page", 1, type=int)
@@ -51,7 +53,7 @@ def index():
 
 
 @bp_monitoring_mingguan.route("/<int:id>", methods=["GET"])
-@role_required("admin", "guru")
+@role_required("admin", "guru","kepsek")
 def show(id):
     try:
         monitoring = get_mingguan_by_id(id)
@@ -81,6 +83,8 @@ def store():
         if errors:
             return error_response("Validation error", errors=errors, code=422)
 
+        data = schema.load(data)
+
         monitoring = create_mingguan(data, user_id)
 
         return success_response(
@@ -95,6 +99,7 @@ def store():
     
     except Exception as e:
         db.session.rollback()
+        current_app.logger.exception(e)
         return error_response("Terjadi kesalahan pada server", code=500)
 
 
@@ -105,10 +110,12 @@ def update(id):
         data = request.get_json()
 
         schema = MonitoringMingguanSchema(partial=True)
-        errors = schema.validate(data)
+        errors = schema.validate(data)         
 
         if errors:
-            return error_response("Validation error", errors=errors, code=422)
+            return error_response("Validation error", errors=errors, code=422)         
+
+        data = schema.load(data)           
 
         monitoring = update_mingguan(id, data)
 
@@ -152,3 +159,19 @@ def publish(id):
     except Exception as e:
         db.session.rollback()
         return error_response("Terjadi kesalahan pada server", code=500)
+    
+@bp_monitoring_mingguan.route("/<int:id>/download-pdf", methods=["GET"])
+@role_required("admin", "guru", "kepsek")
+def download_pdf(id):
+    try:
+        file_path = generate_monitoring_mingguan_pdf(id)
+
+        return send_file(
+            file_path,
+            as_attachment=True,
+            download_name="monitoring_mingguan.pdf",
+            mimetype="application/pdf"
+        )
+
+    except Exception as e:
+        return error_response(str(e), code=500)

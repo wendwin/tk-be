@@ -2,9 +2,16 @@ from app.extensions import db
 from app.models.akademik.kelas import Kelas
 from app.models.pendaftaran import TahunAjaran
 
+from sqlalchemy.orm import joinedload
+
 def get_all_kelas():
     return (
         Kelas.query
+        .options(
+            joinedload(Kelas.tahun_ajaran),
+            joinedload(Kelas.guru_kelas),
+            joinedload(Kelas.siswa_kelas),
+        )
         .order_by(Kelas.created_at.desc())
         .all()
     )

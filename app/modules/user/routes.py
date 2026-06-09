@@ -24,7 +24,7 @@ bp_user = Blueprint("user", __name__)
 
 
 @bp_user.route("", methods=["GET"])
-@role_required("admin")
+@role_required("admin", "kepsek")
 def index():
     try:
         page = request.args.get("page", 1, type=int)

@@ -1,5 +1,4 @@
 from sqlalchemy.orm import joinedload
-
 from app.extensions import db
 
 from app.models.monitoring.mingguan.monitoring import MonitoringMingguan
@@ -9,6 +8,11 @@ from app.models.monitoring.mingguan.kegiatan import MonitoringKegiatan
 from app.models.monitoring.mingguan.asesmen_awal import MonitoringAsesmenAwal
 from app.models.akademik.siswa_kelas import SiswaKelas
 
+def get_bulan_monitoring(tanggal_mulai, tanggal_selesai):
+    if tanggal_mulai.month != tanggal_selesai.month:
+        return tanggal_selesai.month
+
+    return tanggal_mulai.month
 
 def get_all_mingguan(
     page=1,
@@ -63,23 +67,30 @@ def get_mingguan_by_id(id):
 
 
 def create_mingguan(data, user_id):
+    bulan = get_bulan_monitoring(
+        data["tanggal_mulai"],
+        data["tanggal_selesai"]
+    )
+
     existing = MonitoringMingguan.query.filter_by(
         kelas_id=data["kelas_id"],
         tahun_ajaran_id=data["tahun_ajaran_id"],
         semester=data["semester"],
+        bulan=bulan,
         minggu=data["minggu"],
     ).first()
 
     if existing:
         raise ValueError(
-            "Monitoring mingguan untuk kelas, semester, dan minggu ini sudah dibuat"
+            "Monitoring mingguan untuk kelas, semester, bulan, dan minggu ini sudah dibuat"
         )
-    
+
     monitoring = MonitoringMingguan(
         kelas_id=data["kelas_id"],
         tahun_ajaran_id=data["tahun_ajaran_id"],
         created_by=user_id,
         semester=data["semester"],
+        bulan=bulan,
         minggu=data["minggu"],
         topik=data["topik"],
         sub_topik=data["sub_topik"],
@@ -106,36 +117,50 @@ def update_mingguan(id, data):
     if not monitoring:
         raise ValueError("Data monitoring mingguan tidak ditemukan")
 
+    new_kelas_id = data.get("kelas_id", monitoring.kelas_id)
+    new_tahun_ajaran_id = data.get(
+        "tahun_ajaran_id",
+        monitoring.tahun_ajaran_id
+    )
+    new_semester = data.get("semester", monitoring.semester)
+    new_minggu = data.get("minggu", monitoring.minggu)
+    new_tanggal_mulai = data.get(
+        "tanggal_mulai",
+        monitoring.tanggal_mulai
+    )
+    new_tanggal_selesai = data.get(
+        "tanggal_selesai",
+        monitoring.tanggal_selesai
+    )
+
+    new_bulan = get_bulan_monitoring(
+        new_tanggal_mulai,
+        new_tanggal_selesai
+    )
+
     existing = MonitoringMingguan.query.filter(
         MonitoringMingguan.id != monitoring.id,
-        MonitoringMingguan.kelas_id == data.get("kelas_id", monitoring.kelas_id),
-        MonitoringMingguan.tahun_ajaran_id == data.get(
-            "tahun_ajaran_id",
-            monitoring.tahun_ajaran_id
-        ),
-        MonitoringMingguan.semester == data.get("semester", monitoring.semester),
-        MonitoringMingguan.minggu == data.get("minggu", monitoring.minggu),
+        MonitoringMingguan.kelas_id == new_kelas_id,
+        MonitoringMingguan.tahun_ajaran_id == new_tahun_ajaran_id,
+        MonitoringMingguan.semester == new_semester,
+        MonitoringMingguan.bulan == new_bulan,
+        MonitoringMingguan.minggu == new_minggu,
     ).first()
 
     if existing:
         raise ValueError(
-            "Monitoring mingguan untuk kelas, semester, dan minggu ini sudah dibuat"
+            "Monitoring mingguan untuk kelas, semester, bulan, dan minggu ini sudah dibuat"
         )
 
-    monitoring.kelas_id = data.get("kelas_id", monitoring.kelas_id)
-    monitoring.tahun_ajaran_id = data.get(
-        "tahun_ajaran_id",
-        monitoring.tahun_ajaran_id
-    )
-    monitoring.semester = data.get("semester", monitoring.semester)
-    monitoring.minggu = data.get("minggu", monitoring.minggu)
+    monitoring.kelas_id = new_kelas_id
+    monitoring.tahun_ajaran_id = new_tahun_ajaran_id
+    monitoring.semester = new_semester
+    monitoring.bulan = new_bulan
+    monitoring.minggu = new_minggu
     monitoring.topik = data.get("topik", monitoring.topik)
     monitoring.sub_topik = data.get("sub_topik", monitoring.sub_topik)
-    monitoring.tanggal_mulai = data.get("tanggal_mulai", monitoring.tanggal_mulai)
-    monitoring.tanggal_selesai = data.get(
-        "tanggal_selesai",
-        monitoring.tanggal_selesai
-    )
+    monitoring.tanggal_mulai = new_tanggal_mulai
+    monitoring.tanggal_selesai = new_tanggal_selesai
     monitoring.status = data.get("status", monitoring.status)
 
     if data.get("replace_detail") is True:
@@ -145,7 +170,6 @@ def update_mingguan(id, data):
     db.session.commit()
 
     return get_mingguan_by_id(monitoring.id)
-
 
 def publish_mingguan(id):
     monitoring = MonitoringMingguan.query.get(id)

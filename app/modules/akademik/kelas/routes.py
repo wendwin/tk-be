@@ -10,7 +10,7 @@ bp_kelas = Blueprint("kelas", __name__)
 
 
 @bp_kelas.route("", methods=["GET"])
-@role_required("admin", "guru")
+@role_required("admin", "guru", "kepsek")
 def index():
     try:
         kelas = get_all_kelas()
@@ -28,7 +28,7 @@ def index():
 
 
 @bp_kelas.route("/<int:id>", methods=["GET"])
-@role_required("admin", "guru")
+@role_required("admin", "guru", 'kepsek')
 def show(id):
     try:
         kelas = get_kelas_by_id(id)

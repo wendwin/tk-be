@@ -1,5 +1,6 @@
 from flask import jsonify
 import time
+from datetime import datetime, timedelta
 from app.models.auth.user import User
 from app.models.auth.role import Role
 from app.extensions import db
@@ -11,7 +12,7 @@ from app.utils.responses import success_response, error_response
 
 def register_user(data):
     if User.query.filter_by(email=data['email']).first():
-        return error_response("Email already registered", code=400)
+        return error_response("Email sudah terdaftar", code=400)
 
     role = Role.query.filter_by(name='orang_tua').first()
 
@@ -26,7 +27,8 @@ def register_user(data):
         email=data['email'],
         password=generate_password_hash(data['password']),
         role=role,
-        verification_token=token
+        verification_token=token,
+        verification_token_expires_at=datetime.utcnow() + timedelta(minutes=30)
     )
 
     db.session.add(user)
@@ -34,32 +36,43 @@ def register_user(data):
 
     send_verification_email(user.email, token)
 
-    return success_response("Register success, please verify email", code=201)
+    return success_response("Registrasi berhasil, silahkan verifikasi email", code=201)
 
 def verify_user_email(token):
     user = User.query.filter_by(verification_token=token).first()
 
     if not user:
-        return error_response("Invalid token", code=400)
+        return error_response("Token verifikasi tidak valid", code=400)
+
+    if (
+        not user.verification_token_expires_at
+        or user.verification_token_expires_at < datetime.utcnow()
+    ):
+        user.verification_token = None
+        user.verification_token_expires_at = None
+        db.session.commit()
+
+        return error_response("Token verifikasi sudah kedaluwarsa", code=400)
 
     user.is_verified = True
     user.verification_token = None
+    user.verification_token_expires_at = None
 
     db.session.commit()
 
-    return success_response("Email verified successfully", code=200)
+    return success_response("Email berhasil diverifikasi", code=200)
 
 def login_user(data):
     user = User.query.filter_by(email=data['email']).first()
 
     if not user:
-        return error_response("Email or password incorrect", code=401)
+        return error_response("Email atau password salah", code=401)
 
     if not check_password_hash(user.password, data['password']):
-        return error_response("Email or password incorrect", code=401)
+        return error_response("Email atau password salah", code=401)
 
     if not user.is_verified:
-        return error_response("Please verify your email first", code=403)
+        return error_response("Email belum diverifikasi", code=403)
     
     if not user.is_active:
         raise ValueError("Akun sudah dinonaktifkan")
@@ -97,26 +110,39 @@ def forgot_password_service(data):
 
     if not user:
         time.sleep(1)
-        return success_response("Link reset has been sent", code=200)
+        return success_response("Link reset password berhasil dikirim", code=200)
 
     token = secrets.token_urlsafe(32)
 
     user.reset_token = token
+    user.reset_token_expires_at = datetime.utcnow() + timedelta(minutes=30)
+
     db.session.commit()
 
     send_reset_password_email(user.email, token)
 
-    return success_response("Link reset has been sent", code=200)
+    return success_response("Link reset password berhasil dikirim", code=200)
 
 def reset_password_service(data):
     user = User.query.filter_by(reset_token=data['token']).first()
 
     if not user:
-        return error_response("Token is invalid or expired", code=400)
+        return error_response("Token reset password tidak valid", code=400)
+
+    if (
+        not user.reset_token_expires_at
+        or user.reset_token_expires_at < datetime.utcnow()
+    ):
+        user.reset_token = None
+        user.reset_token_expires_at = None
+        db.session.commit()
+
+        return error_response("Token reset password sudah kedaluwarsa", code=400)
 
     user.password = generate_password_hash(data['password'])
     user.reset_token = None
+    user.reset_token_expires_at = None
 
     db.session.commit()
 
-    return success_response("Password has been reset successfully", code=200)
+    return success_response("Password berhasil direset", code=200)

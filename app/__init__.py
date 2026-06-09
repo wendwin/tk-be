@@ -81,5 +81,9 @@ def create_app():
     # monitoring siswa
     from app.modules.monitoring.siswa.routes import bp_monitoring_siswa
     app.register_blueprint(bp_monitoring_siswa,url_prefix="/api/monitoring/siswa")
+
+    # laporan
+    from app.modules.laporan.routes import bp_laporan
+    app.register_blueprint(bp_laporan, url_prefix="/api/laporan")
     
     return app

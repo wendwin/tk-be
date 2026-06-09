@@ -41,24 +41,22 @@ def create_guru_kelas(data):
     if not tahun_ajaran:
         raise ValueError("Tahun ajaran tidak ditemukan")
 
-    exists = GuruKelas.query.filter_by(
+    guru_exists = GuruKelas.query.filter_by(
         guru_id=data["guru_id"],
-        kelas_id=data["kelas_id"],
         tahun_ajaran_id=data["tahun_ajaran_id"],
     ).first()
 
-    if exists:
-        raise ValueError("Guru sudah terdaftar pada kelas dan tahun ajaran ini")
+    if guru_exists:
+        raise ValueError("Guru sudah terdaftar pada kelas di tahun ajaran ini")
 
-    if data["peran"] == "wali kelas":
-        wali_exists = GuruKelas.query.filter_by(
-            kelas_id=data["kelas_id"],
-            tahun_ajaran_id=data["tahun_ajaran_id"],
-            peran="wali kelas",
-        ).first()
+    wali_exists = GuruKelas.query.filter_by(
+        kelas_id=data["kelas_id"],
+        tahun_ajaran_id=data["tahun_ajaran_id"],
+        peran="wali kelas",
+    ).first()
 
-        if wali_exists:
-            raise ValueError("Kelas ini sudah memiliki wali kelas")
+    if data["peran"] == "wali kelas" and wali_exists:
+        raise ValueError("Kelas ini sudah memiliki wali kelas")
 
     guru_kelas = GuruKelas(
         guru_id=data["guru_id"],
@@ -79,46 +77,55 @@ def update_guru_kelas(id, data):
     if not guru_kelas:
         raise ValueError("Data guru kelas tidak ditemukan")
 
-    if "guru_id" in data:
-        guru = db.session.get(User, data["guru_id"])
-    
-        if not guru:
-            raise ValueError("Guru tidak ditemukan")
-    
-        if not guru.role or guru.role.name != "guru":
-            raise ValueError("User yang dipilih bukan guru")
+    new_guru_id = data.get("guru_id", guru_kelas.guru_id)
+    new_kelas_id = data.get("kelas_id", guru_kelas.kelas_id)
+    new_tahun_ajaran_id = data.get(
+        "tahun_ajaran_id",
+        guru_kelas.tahun_ajaran_id
+    )
+    new_peran = data.get("peran", guru_kelas.peran)
 
-        guru_kelas.guru_id = data["guru_id"]
+    guru = db.session.get(User, new_guru_id)
 
-    if "kelas_id" in data:
-        kelas = db.session.get(Kelas, data["kelas_id"])
+    if not guru:
+        raise ValueError("Guru tidak ditemukan")
 
-        if not kelas:
-            raise ValueError("Kelas tidak ditemukan")
+    if not guru.role or guru.role.name != "guru":
+        raise ValueError("User yang dipilih bukan guru")
 
-        guru_kelas.kelas_id = data["kelas_id"]
+    kelas = db.session.get(Kelas, new_kelas_id)
 
-    if "tahun_ajaran_id" in data:
-        tahun_ajaran = db.session.get(TahunAjaran, data["tahun_ajaran_id"])
+    if not kelas:
+        raise ValueError("Kelas tidak ditemukan")
 
-        if not tahun_ajaran:
-            raise ValueError("Tahun ajaran tidak ditemukan")
+    tahun_ajaran = db.session.get(TahunAjaran, new_tahun_ajaran_id)
 
-        guru_kelas.tahun_ajaran_id = data["tahun_ajaran_id"]
+    if not tahun_ajaran:
+        raise ValueError("Tahun ajaran tidak ditemukan")
 
-    if "peran" in data:
-        if data["peran"] == "wali_kelas":
-            wali_exists = GuruKelas.query.filter(
-                GuruKelas.id != id,
-                GuruKelas.kelas_id == guru_kelas.kelas_id,
-                GuruKelas.tahun_ajaran_id == guru_kelas.tahun_ajaran_id,
-                GuruKelas.peran == "wali_kelas",
-            ).first()
+    guru_exists = GuruKelas.query.filter(
+        GuruKelas.id != id,
+        GuruKelas.guru_id == new_guru_id,
+        GuruKelas.tahun_ajaran_id == new_tahun_ajaran_id,
+    ).first()
 
-            if wali_exists:
-                raise ValueError("Kelas ini sudah memiliki wali kelas")
+    if guru_exists:
+        raise ValueError("Guru sudah terdaftar pada kelas di tahun ajaran ini")
 
-        guru_kelas.peran = data["peran"]
+    wali_exists = GuruKelas.query.filter(
+        GuruKelas.id != id,
+        GuruKelas.kelas_id == new_kelas_id,
+        GuruKelas.tahun_ajaran_id == new_tahun_ajaran_id,
+        GuruKelas.peran == "wali kelas",
+    ).first()
+
+    if new_peran == "wali kelas" and wali_exists:
+        raise ValueError("Kelas ini sudah memiliki wali kelas")
+
+    guru_kelas.guru_id = new_guru_id
+    guru_kelas.kelas_id = new_kelas_id
+    guru_kelas.tahun_ajaran_id = new_tahun_ajaran_id
+    guru_kelas.peran = new_peran
 
     db.session.commit()
 
@@ -142,7 +149,7 @@ def get_my_guru_kelas(user_id):
     ).first()
 
     if not tahun_ajaran_aktif:
-        raise ValueError("Tahun ajaran aktif tidak ditemukan")
+        return []
 
     guru_kelas = (
         GuruKelas.query
@@ -153,8 +160,5 @@ def get_my_guru_kelas(user_id):
         .order_by(GuruKelas.created_at.desc())
         .all()
     )
-
-    if not guru_kelas:
-        raise ValueError("Guru belum terdaftar pada kelas aktif")
 
     return guru_kelas

@@ -19,6 +19,7 @@ class KelasSchema(Schema):
 
     tahun_ajaran = fields.Method("get_tahun_ajaran")
     total_guru = fields.Method("get_total_guru")
+    jumlah_siswa = fields.Method("get_jumlah_siswa")
 
     created_at = fields.DateTime(dump_only=True)
     updated_at = fields.DateTime(dump_only=True)
@@ -39,18 +40,17 @@ class KelasSchema(Schema):
             item for item in obj.guru_kelas
             if item.tahun_ajaran_id == obj.tahun_ajaran_id
         ])
-
-class KelasDetailSchema(KelasSchema):
-    jumlah_siswa = fields.Method("get_jumlah_siswa")
-    guru_kelas = fields.Method("get_guru_kelas")
-    siswa_kelas = fields.Method("get_siswa_kelas")
-
+    
     def get_jumlah_siswa(self, obj):
         return len([
             item for item in obj.siswa_kelas
             if item.tahun_ajaran_id == obj.tahun_ajaran_id
             and item.status == "aktif"
         ])
+
+class KelasDetailSchema(KelasSchema):
+    guru_kelas = fields.Method("get_guru_kelas")
+    siswa_kelas = fields.Method("get_siswa_kelas")
 
     def get_guru_kelas(self, obj):
         guru_kelas = [

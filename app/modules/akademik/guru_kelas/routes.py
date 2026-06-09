@@ -24,7 +24,7 @@ bp_guru_kelas = Blueprint("guru_kelas", __name__)
 
 
 @bp_guru_kelas.route("", methods=["GET"])
-@role_required("admin", "guru")
+@role_required("admin", "guru", "kepsek")
 def index():
     try:
         guru_kelas = get_all_guru_kelas()

@@ -39,6 +39,13 @@ def seed_users():
             "password": os.getenv("GURU3_PASSWORD"),
             "role": "guru",
         },
+        {
+            "first_name": "Suci",
+            "last_name": "Eka Handayani, S.Pd., M.Pd.",
+            "email": os.getenv("KEPSEK_EMAIL"),
+            "password": os.getenv("KEPSEK_PASSWORD"),
+            "role": "kepsek",
+        },
     ]
     for item in users:
         role = Role.query.filter_by(

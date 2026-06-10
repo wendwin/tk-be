@@ -83,7 +83,7 @@ def seed_users():
             "last_name": "Eka Handayani, S.Pd., M.Pd.",
             "email": os.getenv("KEPSEK_EMAIL"),
             "password": os.getenv("KEPSEK_PASSWORD"),
-            "role": "",
+            "role": "kepsek",
         },
     ]
     for item in users:

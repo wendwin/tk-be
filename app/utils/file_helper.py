@@ -5,6 +5,18 @@ from werkzeug.utils import secure_filename
 from datetime import datetime
 from app.models.pendaftaran.dokumen import Dokumen
 
+ALLOWED_MIME_TYPES = {
+    "image/jpeg",
+    "image/png",
+    "application/pdf"
+}
+
+MONITORING_MIME_TYPES = {
+    "image/jpeg",
+    "image/png",
+    "image/webp"
+}
+
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'pdf'}
 UPLOAD_FOLDER = 'uploads/pembayaran'
 MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
@@ -16,19 +28,24 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def validate_file(file):
+    if not file or file.filename == "":
+        raise Exception("File wajib dipilih")
+
     if not allowed_file(file.filename):
-        raise Exception("Format file tidak diizinkan (png, jpg, jpeg)")
+        raise Exception("Format file harus PNG, JPG, JPEG, atau PDF")
+
+    if file.mimetype not in ALLOWED_MIME_TYPES:
+        raise Exception("Tipe file tidak valid")
 
     file.seek(0, os.SEEK_END)
-    size = file.tell()
     file_length = file.tell()
     file.seek(0)
 
-    if file_length > MAX_FILE_SIZE:
-        raise Exception("Ukuran file maksimal 2MB")
-    
-    if size == 0:
+    if file_length == 0:
         raise Exception("File kosong")
+
+    if file_length > MAX_FILE_SIZE:
+        raise Exception("Ukuran file maksimal 5MB")
 
 
 def generate_filename(original_filename):
@@ -89,6 +106,9 @@ def validate_monitoring_image(file):
 
     if not allowed_monitoring_image(file.filename):
         raise Exception("Format foto harus png, jpg, jpeg, atau webp")
+
+    if file.mimetype not in MONITORING_MIME_TYPES:
+        raise Exception("Tipe file foto tidak valid")
 
     file.seek(0, os.SEEK_END)
     file_length = file.tell()

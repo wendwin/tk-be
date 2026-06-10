@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 from werkzeug.security import generate_password_hash
 
 from app.extensions import db
@@ -63,9 +63,9 @@ def seed_pendaftaran():
                 "Raka Aditya",
                 "Kayla Anindya",
                 "Farel Mahendra",
-                # "Nayla Azahra",
-                # "Rafael Prakoso",
-                # "Celine Aurora",
+                "Nayla Azahra",
+                "Rafael Prakoso",
+                "Celine Aurora",
                 # "Alvaro Wijaya",
                 # "Shakira Maharani",
                 # "Daffa Ramadhan",
@@ -87,8 +87,8 @@ def seed_pendaftaran():
                 "Aditya Fauzan",
                 "Syakira Putri",
                 "Fathan Alfarezi",
-                # "Nabila Safitri",
-                # "Rasyid Ramadhan",
+                "Nabila Safitri",
+                "Rasyid Ramadhan",
                 # "Calista Aurelia",
                 # "Aqila Maharani",
                 # "Farhan Akbar",
@@ -111,18 +111,52 @@ def seed_pendaftaran():
                 "Danish Mahardika",
                 "Kezia Valencia",
                 "Fahri Ramadhan",
-                # "Mikhaila Putri",
-                # "Rafandra Wijaya",
-                # "Kiara Jasmine",
-                # "Arya Bintang",
-                # "Sheva Maharani",
-                # "Dzaky Alfatih",
+                "Mikhaila Putri",
+                "Rafandra Wijaya",
+                "Kiara Jasmine",
+                "Arya Bintang",
+                "Sheva Maharani",
+                "Dzaky Alfatih",
                 # "Meisya Azzahra",
                 # "Rendra Saputra",
                 # "Alesha Khansa",
                 # "Nathaniel Adrian",
             ],
         },
+    ]
+
+    tanggal_daftar_list = [
+
+       datetime(2026, 1, 5),
+       datetime(2026, 1, 9),
+       datetime(2026, 1, 12),
+       datetime(2026, 1, 18),
+       datetime(2026, 1, 24),
+       datetime(2026, 1, 28),
+
+       datetime(2026, 2, 3),
+       datetime(2026, 2, 8),
+       datetime(2026, 2, 14),
+       datetime(2026, 2, 20),
+       datetime(2026, 2, 26),
+
+       datetime(2026, 3, 4),
+       datetime(2026, 3, 9),
+       datetime(2026, 3, 15),
+       datetime(2026, 3, 19),
+       datetime(2026, 3, 24),
+       datetime(2026, 3, 29),
+
+       datetime(2026, 4, 8),
+       datetime(2026, 4, 14),
+       datetime(2026, 4, 20),
+       datetime(2026, 4, 27),
+
+       datetime(2026, 5, 3),
+       datetime(2026, 5, 10),
+       datetime(2026, 5, 17),
+       datetime(2026, 5, 22),
+       datetime(2026, 5, 25),
     ]
 
     counter = 1
@@ -272,11 +306,14 @@ def seed_pendaftaran():
             db.session.add(ayah)
             db.session.add(ibu)
 
+            tanggal_daftar = tanggal_daftar_list[(counter - 1) % len(tanggal_daftar_list)]
+
             pendaftaran = Pendaftaran(
                 peserta_id=peserta.id,
                 tahun_ajaran_id=tahun_ajaran.id,
                 gelombang_id=gelombang.id,
                 no_pendaftaran=f"{counter:03}",
+                tanggal_daftar = tanggal_daftar,
                 status="accepted",
                 status_pembayaran="paid",
                 jenis=kelompok["jenis"],

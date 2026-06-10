@@ -5,6 +5,8 @@ from app.extensions import db
 from app.models.auth.user import User
 from app.models.auth.role import Role
 
+from app.utils.exceptions import NotFoundError
+
 
 def get_all_users(
     role=None,
@@ -53,7 +55,7 @@ def get_user_by_id(id):
     user = db.session.get(User, id)
 
     if not user:
-        raise ValueError("User tidak ditemukan")
+        raise NotFoundError("User tidak ditemukan")
 
     return user
 
@@ -69,7 +71,7 @@ def create_user(data):
     role = db.session.get(Role, data["role_id"])
 
     if not role:
-        raise ValueError("Role tidak ditemukan")
+        raise NotFoundError("Role tidak ditemukan")
 
     user = User(
         first_name=data["first_name"],
@@ -113,7 +115,7 @@ def update_user(id, data):
         role = db.session.get(Role, data["role_id"])
 
         if not role:
-            raise ValueError("Role tidak ditemukan")
+            raise NotFoundError("Role tidak ditemukan")
 
         user.role_id = data["role_id"]
 

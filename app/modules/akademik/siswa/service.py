@@ -53,7 +53,7 @@ def get_all_siswa(
 
     return (
         query
-        .distinct(Siswa.id)
+        .distinct()
         .order_by(Siswa.created_at.desc())
         .paginate(
             page=page,

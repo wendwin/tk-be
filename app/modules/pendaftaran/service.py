@@ -87,7 +87,15 @@ def get_all(
             Pendaftaran.status_pembayaran == status_pembayaran
         )
 
-    return query.paginate(page=page, per_page=per_page, error_out=False)
+    return query.order_by(
+        Pendaftaran.tanggal_daftar.is_(None),
+        Pendaftaran.tanggal_daftar.desc(),
+        Pendaftaran.id.desc()
+    ).paginate(
+        page=page,
+        per_page=per_page,
+        error_out=False
+    )
 
 def create(data, user_id):
     peserta_data = data["peserta"]

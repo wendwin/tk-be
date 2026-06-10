@@ -125,6 +125,29 @@ def seed_pendaftaran():
         },
     ]
 
+    tanggal_lahir_list = [
+        # KB
+        date(2023, 8, 10),
+        date(2023, 5, 12),
+        date(2023, 1, 20),
+        date(2022, 11, 5),
+        date(2022, 9, 15),
+    
+        # TK A
+        date(2021, 12, 10),
+        date(2021, 10, 15),
+        date(2021, 8, 20),
+        date(2021, 5, 10),
+        date(2021, 2, 1),
+    
+        # TK B
+        date(2020, 12, 20),
+        date(2020, 9, 12),
+        date(2020, 6, 1),
+        date(2020, 3, 15),
+        date(2019, 12, 5),
+    ]
+
     tanggal_daftar_list = [
 
        datetime(2026, 1, 5),
@@ -208,11 +231,13 @@ def seed_pendaftaran():
             db.session.add(alamat)
             db.session.flush()
 
-            tanggal_lahir = date(
-                kelompok["tahun_lahir"],
-                kelompok["bulan_lahir"],
-                min(i, 28),
-            )
+            # tanggal_lahir = date(
+            #     kelompok["tahun_lahir"],
+            #     kelompok["bulan_lahir"],
+            #     min(i, 28),
+            # )
+
+            tanggal_lahir = tanggal_lahir_list[i % len(tanggal_lahir_list)]
 
             peserta = PesertaDidik(
                 user_id=user.id,

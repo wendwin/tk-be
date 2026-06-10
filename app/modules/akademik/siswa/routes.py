@@ -13,35 +13,35 @@ bp_siswa = Blueprint("siswa", __name__)
 @bp_siswa.route("", methods=["GET"])
 @role_required("admin", "guru", "kepsek")
 def index():
-    try:
-        page = request.args.get("page", 1, type=int)
-        per_page = request.args.get("per_page", 10, type=int)
+    page = request.args.get("page", 1, type=int)
+    per_page = request.args.get("per_page", 10, type=int)
 
-        search = request.args.get("search")
-        status = request.args.get("status")
-        tahun_ajaran_id = request.args.get("tahun_ajaran_id", type=int)
-        kelas_id = request.args.get("kelas_id", type=int)
+    search = request.args.get("search")
+    status = request.args.get("status")
+    jenis = request.args.get("jenis")
+    program = request.args.get("program")
+    tahun_ajaran_id = request.args.get("tahun_ajaran_id", type=int)
+    kelas_id = request.args.get("kelas_id", type=int)
 
-        pagination = get_all_siswa(
-            page=page,
-            per_page=per_page,
-            search=search,
-            status=status,
-            tahun_ajaran_id=tahun_ajaran_id,
-            kelas_id=kelas_id,
-        )
+    pagination = get_all_siswa(
+        page=page,
+        per_page=per_page,
+        search=search,
+        status=status,
+        jenis=jenis,
+        program=program,
+        tahun_ajaran_id=tahun_ajaran_id,
+        kelas_id=kelas_id,
+    )
 
-        schema = SiswaListSchema(many=True)
-        data = schema.dump(pagination.items)
+    schema = SiswaListSchema(many=True)
+    data = schema.dump(pagination.items)
 
-        return success_response(
-            message="Berhasil mengambil data siswa",
-            data=data,
-            meta=format_pagination(pagination),
-        )
-
-    except Exception as e:
-        return error_response(str(e), 500)
+    return success_response(
+        message="Berhasil mengambil data siswa",
+        data=data,
+        meta=format_pagination(pagination),
+    )
 
 
 @bp_siswa.route("/<int:id>", methods=["GET"])

@@ -274,6 +274,8 @@ class PendaftaranSchema(Schema, UmurMixin):
     id = fields.Int(dump_only=True)
     no_pendaftaran = fields.Str(dump_only=True)
     created_at = fields.DateTime(dump_only=True)
+    updated_at = fields.DateTime(dump_only=True)
+    tanggal_daftar = fields.DateTime(dump_only=True, allow_none=True)
     status = fields.Str(
         dump_only=True,
         validate=validate.OneOf(['draft','pending','verified','accepted','rejected'])
@@ -333,6 +335,8 @@ class PendaftaranSchema(Schema, UmurMixin):
 class PendaftaranListSchema(Schema, UmurMixin):
     id = fields.Int(dump_only=True)
     no_pendaftaran = fields.Str(dump_only=True)
+    
+    tanggal_daftar = fields.DateTime(dump_only=True, allow_none=True)
 
     umur = fields.Method("get_umur", dump_only=True)
     jenis = fields.Str(dump_only=True)

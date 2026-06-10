@@ -40,11 +40,50 @@ def seed_users():
             "role": "guru",
         },
         {
+            "first_name": "Dewi",
+            "last_name": "Kartika, S.Pd.",
+            "email": os.getenv("GURU4_EMAIL"),
+            "password": os.getenv("GURU4_PASSWORD"),
+            "role": "guru",
+        },      
+
+        {
+            "first_name": "Rina",
+            "last_name": "Maharani, S.Pd.",
+            "email": os.getenv("GURU5_EMAIL"),
+            "password": os.getenv("GURU5_PASSWORD"),
+            "role": "guru",
+        },      
+
+        {
+            "first_name": "Yuni",
+            "last_name": "Safitri, S.Pd.",
+            "email": os.getenv("GURU6_EMAIL"),
+            "password": os.getenv("GURU6_PASSWORD"),
+            "role": "guru",
+        },      
+
+        {
+            "first_name": "Fitri",
+            "last_name": "Anggraini, S.Pd.",
+            "email": os.getenv("GURU7_EMAIL"),
+            "password": os.getenv("GURU7_PASSWORD"),
+            "role": "guru",
+        },      
+
+        {
+            "first_name": "Nanda",
+            "last_name": "Pratiwi, S.Pd.",
+            "email": os.getenv("GURU8_EMAIL"),
+            "password": os.getenv("GURU8_PASSWORD"),
+            "role": "guru",
+        },
+        {
             "first_name": "Suci",
             "last_name": "Eka Handayani, S.Pd., M.Pd.",
             "email": os.getenv("KEPSEK_EMAIL"),
             "password": os.getenv("KEPSEK_PASSWORD"),
-            "role": "kepsek",
+            "role": "",
         },
     ]
     for item in users:

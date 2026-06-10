@@ -33,7 +33,36 @@ def seed_kpsp_pertanyaan():
             "kemampuan_anak": "Anak mampu meniru kegiatan orang dewasa",
             "urutan": 5
         },
-
+        {
+            "usia_bulan": 30,
+            "aspek_perkembangan": "Gerakan Kasar",
+            "kemampuan_anak": "Anak mampu naik tangga dengan berpegangan",
+            "urutan": 1
+        },
+        {
+            "usia_bulan": 30,
+            "aspek_perkembangan": "Gerakan Halus",
+            "kemampuan_anak": "Anak mampu menyusun menara dari 8 balok",
+            "urutan": 2
+        },
+        {
+            "usia_bulan": 30,
+            "aspek_perkembangan": "Pengamatan",
+            "kemampuan_anak": "Anak mampu menunjuk gambar yang disebutkan",
+            "urutan": 3
+        },
+        {
+            "usia_bulan": 30,
+            "aspek_perkembangan": "Bicara",
+            "kemampuan_anak": "Anak mampu menyebut nama benda yang dikenal",
+            "urutan": 4
+        },
+        {
+            "usia_bulan": 30,
+            "aspek_perkembangan": "Sosialisasi",
+            "kemampuan_anak": "Anak mampu makan sendiri menggunakan sendok",
+            "urutan": 5
+        },
         {
             "usia_bulan": 36,
             "aspek_perkembangan": "Gerakan Kasar",

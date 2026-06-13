@@ -2,7 +2,7 @@ import tempfile
 
 from reportlab.lib.pagesizes import mm
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak
 from reportlab.lib.enums import TA_CENTER
 from reportlab.lib import colors
 from sqlalchemy.orm import joinedload
@@ -224,6 +224,8 @@ def generate_monitoring_mingguan_pdf(id):
     ]))
 
     elements.append(kegiatan_table)
+
+    elements.append(PageBreak())
 
     if monitoring.asesmen_awal:
         elements.append(Paragraph("C. Asesmen Awal", section_style))

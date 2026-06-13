@@ -16,6 +16,7 @@ def export_pdf():
 
         return send_file(
             file_path,
+            mimetype="application/pdf",
             as_attachment=False,
             download_name="laporan_kepsek.pdf"
         )

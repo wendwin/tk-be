@@ -181,19 +181,24 @@ def generate_laporan_pdf(tahun_ajaran_id=None):
             item for item in monitoring_list
             if item.kelas_id == kelas.id
         ]
-
-        total = sum([item.total_siswa for item in monitoring_kelas])
-        done = sum([item.total_selesai for item in monitoring_kelas])
-
+    
+        total = 0
+        done = 0
+    
+        for item in monitoring_kelas:
+            total += len(getattr(item.kelas, "siswa_kelas", []) or [])
+            done += len(getattr(item, "monitoring_siswa", []) or [])
+    
         percent = 0
         if total > 0:
             percent = round((done / total) * 100)
-
+    
         if kelas.jenjang == "kb":
             nama_kelas = kelas.nama
         else:
-            nama_kelas = f"{kelas.jenjang.upper()}-{kelas.kelompok.upper()} {kelas.nama}"
-
+            kelompok = kelas.kelompok.upper() if kelas.kelompok else "-"
+            nama_kelas = f"{kelas.jenjang.upper()}-{kelompok} {kelas.nama}"
+    
         monitoring_rows.append([
             nama_kelas,
             done,

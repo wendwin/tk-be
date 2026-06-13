@@ -110,7 +110,7 @@ def forgot_password_service(data):
 
     if not user:
         time.sleep(1)
-        return success_response("Link reset password berhasil dikirim", code=200)
+        return success_response("Jika email terdaftar, link reset password akan dikirim ke email Anda", code=200)
 
     token = secrets.token_urlsafe(32)
 
@@ -121,7 +121,7 @@ def forgot_password_service(data):
 
     send_reset_password_email(user.email, token)
 
-    return success_response("Link reset password berhasil dikirim", code=200)
+    return success_response("Jika email terdaftar, link reset password akan dikirim ke email Anda", code=200)
 
 def reset_password_service(data):
     user = User.query.filter_by(reset_token=data['token']).first()

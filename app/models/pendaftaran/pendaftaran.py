@@ -8,7 +8,7 @@ class Pendaftaran(db.Model):
 
     peserta_id = db.Column(db.Integer, db.ForeignKey('peserta_didik.id'), nullable=False)
     tahun_ajaran_id = db.Column(db.Integer, db.ForeignKey('tahun_ajaran.id'), nullable=False)
-    gelombang_id = db.Column(db.Integer, db.ForeignKey('gelombang.id'), nullable=False)
+    gelombang_id = db.Column(db.Integer, db.ForeignKey('gelombang.id'), nullable=True)
 
     no_pendaftaran = db.Column(db.String(20), unique=True, nullable=False)
 
@@ -47,13 +47,9 @@ class Pendaftaran(db.Model):
         ),
         nullable=False,
         default='belum_upload'
-)
+    )   
 
-    tanggal_daftar = db.Column(
-        db.DateTime,
-        nullable=False,
-        default=datetime.utcnow
-    )
+    tanggal_daftar = db.Column(db.DateTime, nullable=True)
 
     jenis = db.Column(
         db.Enum('tk', 'kb', name='jenis_enum'),

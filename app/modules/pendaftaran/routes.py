@@ -5,12 +5,13 @@ from flask import Blueprint, request, redirect, send_from_directory, json, curre
 
 from app.models.pendaftaran.tahun_ajaran import TahunAjaran
 from .schema import PendaftaranSchema, PendaftaranListSchema, TahunAjaranSchema
-from .service import get_all, create, get_by_id, get_by_user_id, upload_berkas_service, update_status_berkas_service, update_status_pembayaran_service , update_status_pendaftaran_service,upload_pembayaran_service, update_pendaftaran_service
+from .service import get_all, create, get_by_id, get_by_user_id, upload_berkas_service, update_status_berkas_service, update_status_pembayaran_service , update_status_pendaftaran_service,upload_pembayaran_service, update_pendaftaran_service, get_by_id
 from app.utils.decorators import role_required
 from app.utils.responses import success_response, error_response
 from app.utils.pagination import format_pagination
 from app.utils.formulir import generate_formulir_pendaftaran
 from app.utils.surat_pernyataan import generate_surat_pernyataan
+from app.utils.bukti_daftar import generate_bukti_pendaftaran_pdf
 
 import traceback
 
@@ -274,6 +275,20 @@ def download_surat_pernyataan():
 
     except Exception as e:
         return error_response(str(e), code=500)
+    
+@bp_pendaftaran.route("/<int:id>/bukti-pendaftaran", methods=["GET"])
+@role_required("orang_tua", "admin")
+def download_bukti_pendaftaran(id):
+    pendaftaran = get_by_id(id)
+
+    pdf_buffer = generate_bukti_pendaftaran_pdf(pendaftaran)
+
+    return send_file(
+        pdf_buffer,
+        mimetype="application/pdf",
+        as_attachment=True,
+        download_name=f"bukti-pendaftaran-{pendaftaran.no_pendaftaran}.pdf"
+    )
     
 # me
 @bp_pendaftaran.route('/me', methods=['GET'])

@@ -87,7 +87,15 @@ def get_all(
             Pendaftaran.status_pembayaran == status_pembayaran
         )
 
-    return query.paginate(page=page, per_page=per_page, error_out=False)
+    return query.order_by(
+        Pendaftaran.tanggal_daftar.is_(None),
+        Pendaftaran.tanggal_daftar.desc(),
+        Pendaftaran.id.desc()
+    ).paginate(
+        page=page,
+        per_page=per_page,
+        error_out=False
+    )
 
 def create(data, user_id):
     peserta_data = data["peserta"]
@@ -173,12 +181,10 @@ def create(data, user_id):
     db.session.add(informasi)
 
     # pendaftaran   
-    gelombang = get_gelombang(datetime.utcnow())
-
     pendaftaran = Pendaftaran(
         peserta_id=peserta.id,
         tahun_ajaran_id=data["tahun_ajaran_id"],
-        gelombang_id=gelombang.id if gelombang else None,
+        gelombang_id=None,
         no_pendaftaran=generate_no(),
         jenis=data["jenis"],
         program=data["program"],
@@ -461,15 +467,24 @@ def upload_pembayaran_service(pendaftaran_id, user_id, file):
         folder="pembayaran"
     )
 
+    now = datetime.utcnow()
+
+    gelombang = get_gelombang(now)
+    if not gelombang:
+        raise Exception("Tidak ada gelombang pendaftaran yang aktif")
+
     pendaftaran.status_pembayaran = "pending"
     pendaftaran.status = "pending"
+    pendaftaran.tanggal_daftar = now
+    pendaftaran.gelombang_id = gelombang.id
 
     db.session.commit()
 
     return {
         "file_path": file_url,
         "status_pembayaran": pendaftaran.status_pembayaran,
-        "status": pendaftaran.status
+        "status": pendaftaran.status,
+        "tanggal_daftar": pendaftaran.tanggal_daftar
     }
 
 def get_by_user_id(user_id):

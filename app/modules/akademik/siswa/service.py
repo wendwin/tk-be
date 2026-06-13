@@ -3,18 +3,21 @@ from app.models.akademik.siswa import Siswa
 from app.models.pendaftaran import Pendaftaran, PesertaDidik
 from app.models.akademik.siswa_kelas import SiswaKelas
 
-
 def get_all_siswa(
     page=1,
     per_page=10,
     search=None,
     status=None,
+    jenis=None,
+    program=None,
     tahun_ajaran_id=None,
     kelas_id=None,
 ):
     query = (
         Siswa.query
         .join(Siswa.peserta)
+        .join(PesertaDidik.pendaftaran)
+        .filter(Pendaftaran.status == "accepted")
     )
 
     if search:
@@ -27,21 +30,30 @@ def get_all_siswa(
             Siswa.status == status
         )
 
-    if tahun_ajaran_id or kelas_id:
-        query = query.join(Siswa.riwayat_kelas)
+    if jenis:
+        query = query.filter(
+            Pendaftaran.jenis == jenis
+        )
 
-        if tahun_ajaran_id:
-            query = query.filter(
-                SiswaKelas.tahun_ajaran_id == tahun_ajaran_id
-            )
+    if program:
+        query = query.filter(
+            Pendaftaran.program == program
+        )
 
-        if kelas_id:
-            query = query.filter(
-                SiswaKelas.kelas_id == kelas_id
-            )
+    if tahun_ajaran_id:
+        query = query.filter(
+            Pendaftaran.tahun_ajaran_id == tahun_ajaran_id
+        )
+
+    if kelas_id:
+        query = query.join(Siswa.riwayat_kelas).filter(
+            SiswaKelas.kelas_id == kelas_id,
+            SiswaKelas.status == "aktif"
+        )
 
     return (
         query
+        .distinct()
         .order_by(Siswa.created_at.desc())
         .paginate(
             page=page,

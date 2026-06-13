@@ -1,4 +1,7 @@
-from flask import Flask, app
+from flask import Flask
+from dotenv import load_dotenv
+
+load_dotenv()
 from .config import Config
 from .extensions import db, jwt, migrate, mail, limiter
 from flask_cors import CORS
@@ -16,19 +19,24 @@ def create_app():
     jwt.init_app(app)
     migrate.init_app(app, db)
     mail.init_app(app)
-    # limiter.init_app(app)
+    limiter.init_app(app)
     init_logger(app)
     
     init_error_handlers(app)
     register_db_command(app)
+
+    frontend_url = app.config.get("FRONTEND_URL")
+
     CORS(app,
           supports_credentials=True,
-          origins=app.config["FRONTEND_URL"],
+          origins=[frontend_url] if frontend_url else [],
           expose_headers=["X-CSRF-TOKEN"],
           allow_headers=["Content-Type", "X-CSRF-TOKEN"]
         )
 
-    # app.route('/')(lambda: 'running')
+    @app.route("/")
+    def index():
+        return "running"
 
     # auth
     from app.modules.auth.routes import auth_bp

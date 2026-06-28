@@ -19,7 +19,7 @@ def create_app():
     jwt.init_app(app)
     migrate.init_app(app, db)
     mail.init_app(app)
-    limiter.init_app(app)
+    # limiter.init_app(app)
     init_logger(app)
     
     init_error_handlers(app)

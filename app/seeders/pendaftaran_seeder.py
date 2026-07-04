@@ -428,4 +428,4 @@ def seed_pendaftaran():
             counter += 1
 
     db.session.commit()
-    print("Seeder pendaftaran 45 siswa berhasil")
+    print("Seeder pendaftaran 26 siswa berhasil")

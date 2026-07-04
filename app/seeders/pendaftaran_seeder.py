@@ -333,44 +333,66 @@ def seed_pendaftaran():
 
             tanggal_daftar = tanggal_daftar_list[(counter - 1) % len(tanggal_daftar_list)]
 
+            total_pendaftar = sum(
+                len(kelompok["nama_list"])
+                for kelompok in kelompok_data
+            )
+
+            if counter > total_pendaftar - 5:
+                status = "pending"
+                status_berkas = "pending"
+                status_pembayaran = "pending"
+                status_observasi = "belum"
+                create_siswa = False
+            else:
+                status = "accepted"
+                status_berkas = "verified"
+                status_pembayaran = "paid"
+                status_observasi = "hadir"
+                create_siswa = True
+
             pendaftaran = Pendaftaran(
                 peserta_id=peserta.id,
                 tahun_ajaran_id=tahun_ajaran.id,
                 gelombang_id=gelombang.id,
                 no_pendaftaran=f"{counter:03}",
-                tanggal_daftar = tanggal_daftar,
-                status="accepted",
-                status_pembayaran="paid",
+                tanggal_daftar=tanggal_daftar,
+                status=status,
+                status_berkas=status_berkas,
+                status_pembayaran=status_pembayaran,
                 jenis=kelompok["jenis"],
                 program="fullday",
-                status_observasi="hadir",
+                status_observasi=status_observasi,
             )
 
             db.session.add(pendaftaran)
             db.session.flush()
 
-            siswa = Siswa(
-                peserta_id=peserta.id,
-                nisn=f"00512345{counter:03}",
-                tanggal_masuk=tahun_ajaran.tanggal_mulai,
-                status="aktif",
-            )
+            if create_siswa:
+                siswa = Siswa(
+                    peserta_id=peserta.id,
+                    nisn=f"00512345{counter:03}",
+                    tanggal_masuk=tahun_ajaran.tanggal_mulai,
+                    status="aktif",
+                )
 
-            db.session.add(siswa)
+                db.session.add(siswa)
 
-            for jenis_dokumen in [
-                "kk",
-                "akta",
-                "kia",
-                "foto",
-                "surat_pernyataan",
-                "bukti_pembayaran",
-            ]:
+            dokumen_mapping = {
+                "kk": "/uploads/kk/contoh_kk.jpg",
+                "akta": "/uploads/akta/contoh_akta.jpg",
+                "kia": "/uploads/kia/contoh_kia.jpg",
+                "foto": "/uploads/foto/contoh_foto.png",
+                "surat_pernyataan": "/uploads/surat_pernyataan/contoh_surat.pdf",
+                "bukti_pembayaran": "/uploads/pembayaran/contoh_pembayaran.jpg",
+            }
+
+            for jenis_dokumen, path in dokumen_mapping.items():
                 db.session.add(
                     Dokumen(
                         pendaftaran_id=pendaftaran.id,
                         jenis_dokumen=jenis_dokumen,
-                        file_path=f"/uploads/dummy/{jenis_dokumen}_{counter}.jpg",
+                        file_path=path,
                     )
                 )
 
@@ -428,4 +450,4 @@ def seed_pendaftaran():
             counter += 1
 
     db.session.commit()
-    print("Seeder pendaftaran 45 siswa berhasil")
+    print("Seeder pendaftaran 26 siswa berhasil")

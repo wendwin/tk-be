@@ -53,11 +53,11 @@ def seed_siswa_kelas():
         elif nama in [
             "Abimanyu Saputra",
             "Naura Khairunnisa",
-            "Aditya Fauzan",
-            "Syakira Putri",
-            "Fathan Alfarezi",
-            "Nabila Safitri",
-            "Rasyid Ramadhan",
+            # "Aditya Fauzan",
+            # "Syakira Putri",
+            # "Fathan Alfarezi",
+            # "Nabila Safitri",
+            # "Rasyid Ramadhan",
         ]:
             kelas = kelas_tka
 

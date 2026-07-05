@@ -379,11 +379,11 @@ def seed_pendaftaran():
                 db.session.add(siswa)
 
             dokumen_mapping = {
-                "kk": "/uploads/kk/contoh_kk.jpg",
-                "akta": "/uploads/akta/contoh_akta.jpg",
-                "kia": "/uploads/kia/contoh_kia.jpg",
-                "foto": "/uploads/foto/contoh_foto.png",
-                "surat_pernyataan": "/uploads/surat_pernyataan/contoh_surat.pdf",
+                "kk": "/uploads/dokumen/kk/contoh_kk.jpg",
+                "akta": "/uploads/dokumen/akta/contoh_akta.jpg",
+                "kia": "/uploads/dokumen/kia/contoh_kia.jpg",
+                "foto": "/uploads/dokumen/foto/contoh_foto.png",
+                "surat_pernyataan": "/uploads/dokumen/surat_pernyataan/contoh_surat.pdf",
                 "bukti_pembayaran": "/uploads/pembayaran/contoh_pembayaran.jpg",
             }
 

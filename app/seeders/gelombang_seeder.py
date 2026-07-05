@@ -20,7 +20,7 @@ def seed_gelombang():
         {
             "nama": "Gelombang 3",
             "tanggal_mulai": date(2026, 5, 1),
-            "tanggal_selesai": date(2026, 6, 30),
+            "tanggal_selesai": date(2026, 7, 30),
             "tahun_ajaran_id": 1
         }
     ]

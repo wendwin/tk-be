@@ -263,6 +263,7 @@ class TahunAjaranSchema(Schema):
     id = fields.Int(dump_only=True)
     tahun_mulai = fields.Int(dump_only=True)
     tahun_selesai = fields.Int(dump_only=True)
+    is_active = fields.Boolean(dump_only=True)
     label = fields.Method("get_label", dump_only=True)
 
     def get_label(self, obj):

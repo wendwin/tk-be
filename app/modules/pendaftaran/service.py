@@ -3,6 +3,7 @@ from app.extensions import db
 from app.models.pendaftaran import *
 from sqlalchemy import or_
 from sqlalchemy.orm import joinedload
+from app.models.pendaftaran import gelombang
 from app.utils.file_helper import upload_dokumen
 
 from app.models.pendaftaran.pendaftaran import Pendaftaran
@@ -17,11 +18,27 @@ def generate_no():
         return "001"
     return str(int(last.no_pendaftaran) + 1).zfill(3)
 
-def get_gelombang(tanggal_daftar):
-    return Gelombang.query.filter(
-        Gelombang.tanggal_mulai <= tanggal_daftar,
-        Gelombang.tanggal_selesai >= tanggal_daftar
-    ).first()
+def get_gelombang_by_tahun_ajaran(tahun_ajaran_id):
+    return (
+        Gelombang.query
+        .filter(
+            Gelombang.tahun_ajaran_id == tahun_ajaran_id
+        )
+        .order_by(Gelombang.tanggal_mulai.asc())
+        .first()
+    )
+
+# production ready
+# def get_gelombang(tahun_ajaran_id, tanggal):
+#     return (
+#         Gelombang.query
+#         .filter(
+#             Gelombang.tahun_ajaran_id == tahun_ajaran_id,
+#             Gelombang.tanggal_mulai <= tanggal,
+#             Gelombang.tanggal_selesai >= tanggal
+#         )
+#         .first()
+#     )
 
 def get_or_create_alamat(data):
     return Alamat.query.filter_by(
@@ -100,87 +117,180 @@ def get_all(
 def create(data, user_id):
     peserta_data = data["peserta"]
 
-    alamat_dom = get_or_create_alamat(peserta_data["alamat_domisili"])
+    # alamat domisili
+    alamat_dom = get_or_create_alamat(
+        peserta_data["alamat_domisili"]
+    )
+
     db.session.add(alamat_dom)
     db.session.flush()
 
+    # alamat kk
     if peserta_data.get("alamat_kk_same", True):
         alamat_kk = alamat_dom
     else:
-        alamat_kk = get_or_create_alamat(peserta_data["alamat_kk"])
+        alamat_kk = get_or_create_alamat(
+            peserta_data["alamat_kk"]
+        )
+
         db.session.add(alamat_kk)
         db.session.flush()
 
-    # peserta
-    peserta = PesertaDidik(
-        user_id=user_id,
-        alamat_domisili_id=alamat_dom.id,
-        alamat_kk_id=alamat_kk.id,
-        nama_lengkap=peserta_data.get("nama_lengkap"),
-        nama_panggilan=peserta_data.get("nama_panggilan"),
-        tempat_lahir=peserta_data.get("tempat_lahir"),
-        tanggal_lahir=peserta_data.get("tanggal_lahir"),
-        jenis_kelamin=peserta_data.get("jenis_kelamin"),
-        kewarganegaraan=peserta_data.get("kewarganegaraan"),
-        nik=peserta_data.get("nik"),
-        no_kk=peserta_data.get("no_kk"),
-        no_akta=peserta_data.get("no_akta"),
-        agama=peserta_data.get("agama"),
-        no_telp=peserta_data.get("no_telp"),
-        anak_ke=peserta_data.get("anak_ke"),
-        jumlah_saudara=peserta_data.get("jumlah_saudara"),
-        bahasa=peserta_data.get("bahasa"),
-    )
+    # cek peserta berdasarkan nik
+    peserta = PesertaDidik.query.filter_by(
+        nik=peserta_data["nik"]
+    ).first()
 
-    db.session.add(peserta)
-    db.session.flush()
+    # peserta lama
+    if peserta:
 
-    # kesehatan
-    kesehatan_data = peserta_data["kesehatan"]
-
-    kesehatan = Kesehatan(
-        peserta_id=peserta.id,
-        berat_badan=kesehatan_data.get("berat_badan"),
-        tinggi_badan=kesehatan_data.get("tinggi_badan"),
-        lingkar_kepala=kesehatan_data.get("lingkar_kepala"),
-        golongan_darah=kesehatan_data.get("golongan_darah"),
-        riwayat_penyakit=kesehatan_data.get("riwayat_penyakit"),
-        alergi=kesehatan_data.get("alergi"),
-
-         kebutuhan_khusus=kesehatan_data.get("kebutuhan_khusus", [])
-    )
-    db.session.add(kesehatan)
-
-    # orang tua
-    for ortu in peserta_data["orang_tua"]:
-
-        alamat = alamat_dom
-        orang_tua = OrangTua(
+        # cek apakah sudah terdaftar pada tahun ajaran yang sama
+        existing = Pendaftaran.query.filter_by(
             peserta_id=peserta.id,
-            alamat_id=alamat.id,
-            tipe=ortu.get("tipe"),
-            nama=ortu.get("nama"),
-            tempat_lahir=ortu.get("tempat_lahir"),
-            tanggal_lahir=ortu.get("tanggal_lahir"),
-            nik=ortu.get("nik"),
-            pendidikan=ortu.get("pendidikan"),
-            pekerjaan=ortu.get("pekerjaan"),
-            pendapatan=ortu.get("pendapatan"),
-            alamat_kantor=ortu.get("alamat_kantor"),
-            no_hp=ortu.get("no_hp"),
-            email=ortu.get("email"),
+            tahun_ajaran_id=data["tahun_ajaran_id"]
+        ).first()
+
+        if existing:
+            raise ValueError(
+                "Peserta sudah terdaftar pada tahun ajaran ini"
+            )
+
+        # update data master peserta
+        peserta.user_id = user_id
+        peserta.alamat_domisili_id = alamat_dom.id
+        peserta.alamat_kk_id = alamat_kk.id
+
+        peserta.nama_lengkap = peserta_data.get("nama_lengkap")
+        peserta.nama_panggilan = peserta_data.get("nama_panggilan")
+        peserta.tempat_lahir = peserta_data.get("tempat_lahir")
+        peserta.tanggal_lahir = peserta_data.get("tanggal_lahir")
+        peserta.jenis_kelamin = peserta_data.get("jenis_kelamin")
+        peserta.kewarganegaraan = peserta_data.get("kewarganegaraan")
+        peserta.no_kk = peserta_data.get("no_kk")
+        peserta.no_akta = peserta_data.get("no_akta")
+        peserta.agama = peserta_data.get("agama")
+        peserta.no_telp = peserta_data.get("no_telp")
+        peserta.anak_ke = peserta_data.get("anak_ke")
+        peserta.jumlah_saudara = peserta_data.get("jumlah_saudara")
+        peserta.bahasa = peserta_data.get("bahasa")
+
+        # update kesehatan
+        kesehatan_data = peserta_data["kesehatan"]
+
+        if peserta.kesehatan:
+            peserta.kesehatan.berat_badan = kesehatan_data.get("berat_badan")
+            peserta.kesehatan.tinggi_badan = kesehatan_data.get("tinggi_badan")
+            peserta.kesehatan.lingkar_kepala = kesehatan_data.get("lingkar_kepala")
+            peserta.kesehatan.golongan_darah = kesehatan_data.get("golongan_darah")
+            peserta.kesehatan.riwayat_penyakit = kesehatan_data.get("riwayat_penyakit")
+            peserta.kesehatan.alergi = kesehatan_data.get("alergi")
+            peserta.kesehatan.kebutuhan_khusus = kesehatan_data.get(
+                "kebutuhan_khusus", []
+            )
+
+        # update informasi
+        if peserta.informasi:
+            for key, value in peserta_data["informasi"].items():
+                setattr(peserta.informasi, key, value)
+
+        # update orang tua
+        for ortu_data in peserta_data["orang_tua"]:
+
+            ot = next(
+                (
+                    o for o in peserta.orang_tua
+                    if o.tipe == ortu_data["tipe"]
+                ),
+                None
+            )
+
+            if not ot:
+                continue
+
+            ot.nama = ortu_data.get("nama")
+            ot.tempat_lahir = ortu_data.get("tempat_lahir")
+            ot.tanggal_lahir = ortu_data.get("tanggal_lahir")
+            ot.nik = ortu_data.get("nik")
+            ot.pendidikan = ortu_data.get("pendidikan")
+            ot.pekerjaan = ortu_data.get("pekerjaan")
+            ot.pendapatan = ortu_data.get("pendapatan")
+            ot.alamat_kantor = ortu_data.get("alamat_kantor")
+            ot.no_hp = ortu_data.get("no_hp")
+            ot.email = ortu_data.get("email")
+
+    # peserta baru
+    else:
+
+        peserta = PesertaDidik(
+            user_id=user_id,
+            alamat_domisili_id=alamat_dom.id,
+            alamat_kk_id=alamat_kk.id,
+            nama_lengkap=peserta_data.get("nama_lengkap"),
+            nama_panggilan=peserta_data.get("nama_panggilan"),
+            tempat_lahir=peserta_data.get("tempat_lahir"),
+            tanggal_lahir=peserta_data.get("tanggal_lahir"),
+            jenis_kelamin=peserta_data.get("jenis_kelamin"),
+            kewarganegaraan=peserta_data.get("kewarganegaraan"),
+            nik=peserta_data.get("nik"),
+            no_kk=peserta_data.get("no_kk"),
+            no_akta=peserta_data.get("no_akta"),
+            agama=peserta_data.get("agama"),
+            no_telp=peserta_data.get("no_telp"),
+            anak_ke=peserta_data.get("anak_ke"),
+            jumlah_saudara=peserta_data.get("jumlah_saudara"),
+            bahasa=peserta_data.get("bahasa"),
         )
 
-        db.session.add(orang_tua)
+        db.session.add(peserta)
+        db.session.flush()
 
-    # informasi
-    informasi = Informasi(
-        peserta_id=peserta.id,
-        **peserta_data["informasi"]
-    )
-    db.session.add(informasi)
+        # kesehatan
+        kesehatan_data = peserta_data["kesehatan"]
 
-    # pendaftaran   
+        db.session.add(
+            Kesehatan(
+                peserta_id=peserta.id,
+                berat_badan=kesehatan_data.get("berat_badan"),
+                tinggi_badan=kesehatan_data.get("tinggi_badan"),
+                lingkar_kepala=kesehatan_data.get("lingkar_kepala"),
+                golongan_darah=kesehatan_data.get("golongan_darah"),
+                riwayat_penyakit=kesehatan_data.get("riwayat_penyakit"),
+                alergi=kesehatan_data.get("alergi"),
+                kebutuhan_khusus=kesehatan_data.get(
+                    "kebutuhan_khusus", []
+                )
+            )
+        )
+
+        # orang tua
+        for ortu in peserta_data["orang_tua"]:
+            db.session.add(
+                OrangTua(
+                    peserta_id=peserta.id,
+                    alamat_id=alamat_dom.id,
+                    tipe=ortu.get("tipe"),
+                    nama=ortu.get("nama"),
+                    tempat_lahir=ortu.get("tempat_lahir"),
+                    tanggal_lahir=ortu.get("tanggal_lahir"),
+                    nik=ortu.get("nik"),
+                    pendidikan=ortu.get("pendidikan"),
+                    pekerjaan=ortu.get("pekerjaan"),
+                    pendapatan=ortu.get("pendapatan"),
+                    alamat_kantor=ortu.get("alamat_kantor"),
+                    no_hp=ortu.get("no_hp"),
+                    email=ortu.get("email"),
+                )
+            )
+
+        # informasi
+        db.session.add(
+            Informasi(
+                peserta_id=peserta.id,
+                **peserta_data["informasi"]
+            )
+        )
+
+    # buat pendaftaran baru
     pendaftaran = Pendaftaran(
         peserta_id=peserta.id,
         tahun_ajaran_id=data["tahun_ajaran_id"],
@@ -188,10 +298,10 @@ def create(data, user_id):
         no_pendaftaran=generate_no(),
         jenis=data["jenis"],
         program=data["program"],
-        status='draft',
-        status_berkas='belum_upload',
-        status_pembayaran='unpaid',
-        status_observasi='belum'
+        status="draft",
+        status_berkas="belum_upload",
+        status_pembayaran="unpaid",
+        status_observasi="belum",
     )
 
     db.session.add(pendaftaran)
@@ -469,9 +579,17 @@ def upload_pembayaran_service(pendaftaran_id, user_id, file):
 
     now = datetime.utcnow()
 
-    gelombang = get_gelombang(now)
+    gelombang = get_gelombang_by_tahun_ajaran(pendaftaran.tahun_ajaran_id)
+
     if not gelombang:
-        raise Exception("Tidak ada gelombang pendaftaran yang aktif")
+        raise Exception("Gelombang pendaftaran belum tersedia untuk tahun ajaran ini")
+    
+    # production ready
+    # now = datetime.utcnow().date()
+    # gelombang = get_gelombang(pendaftaran.tahun_ajaran_id,now)
+
+    # if not gelombang:
+    #     raise Exception("Tidak ada gelombang aktif untuk tahun ajaran ini")
 
     pendaftaran.status_pembayaran = "pending"
     pendaftaran.status = "pending"

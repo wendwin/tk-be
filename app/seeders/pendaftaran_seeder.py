@@ -379,11 +379,11 @@ def seed_pendaftaran():
                 db.session.add(siswa)
 
             dokumen_mapping = {
-                "kk": "/uploads/kk/contoh_kk.jpg",
-                "akta": "/uploads/akta/contoh_akta.jpg",
-                "kia": "/uploads/kia/contoh_kia.jpg",
-                "foto": "/uploads/foto/contoh_foto.png",
-                "surat_pernyataan": "/uploads/surat_pernyataan/contoh_surat.pdf",
+                "kk": "/uploads/dokumen/kk/contoh_kk.jpg",
+                "akta": "/uploads/dokumen/akta/contoh_akta.jpg",
+                "kia": "/uploads/dokumen/kia/contoh_kia.jpg",
+                "foto": "/uploads/dokumen/foto/contoh_foto.png",
+                "surat_pernyataan": "/uploads/dokumen/surat_pernyataan/contoh_surat.pdf",
                 "bukti_pembayaran": "/uploads/pembayaran/contoh_pembayaran.jpg",
             }
 
@@ -396,56 +396,53 @@ def seed_pendaftaran():
                     )
                 )
 
-            for idx, pertanyaan in enumerate(gpph_pertanyaan):
-                nilai = 2 if ada_catatan and idx in [0, 3, 5] else idx % 2
+            if create_siswa:
+                for idx, pertanyaan in enumerate(gpph_pertanyaan):
+                    nilai = 2 if ada_catatan and idx in [0, 3, 5] else idx % 2
 
-                db.session.add(
-                    GPPHJawaban(
-                        pendaftaran_id=pendaftaran.id,
-                        pertanyaan_id=pertanyaan.id,
-
-                        snapshot_urutan=pertanyaan.urutan,
-                        snapshot_pertanyaan=pertanyaan.pertanyaan,
-
-                        nilai=nilai,
+                    db.session.add(
+                        GPPHJawaban(
+                            pendaftaran_id=pendaftaran.id,
+                            pertanyaan_id=pertanyaan.id,
+                            snapshot_urutan=pertanyaan.urutan,
+                            snapshot_pertanyaan=pertanyaan.pertanyaan,
+                            nilai=nilai,
+                        )
                     )
+
+                kpsp_pertanyaan = (
+                    KPSPPertanyaan.query
+                    .filter_by(usia_bulan=kelompok["bulan"])
+                    .order_by(KPSPPertanyaan.urutan.asc())
+                    .all()
                 )
 
-            kpsp_pertanyaan = (
-                KPSPPertanyaan.query
-                .filter_by(usia_bulan=kelompok["bulan"])
-                .order_by(KPSPPertanyaan.urutan.asc())
-                .all()
-            )
-
-            catatan = (
-                "Anak perlu perhatian pada fokus dan instruksi berulang."
-                if ada_catatan
-                else "Anak mengikuti observasi dengan baik."
-            )
-
-            for idx, pertanyaan in enumerate(kpsp_pertanyaan):
-                jawaban = "tidak" if ada_catatan and idx in [2, 4] else "ya"            
-
-                db.session.add(
-                    KPSPJawaban(
-                        pendaftaran_id=pendaftaran.id,
-                        pertanyaan_id=pertanyaan.id,            
-
-                        snapshot_usia_bulan=pertanyaan.usia_bulan,
-                        snapshot_aspek_perkembangan=pertanyaan.aspek_perkembangan,
-                        snapshot_kemampuan_anak=pertanyaan.kemampuan_anak,
-                        snapshot_urutan=pertanyaan.urutan,          
-
-                        jawaban=jawaban,
-                        keterangan=(
-                            "Perlu stimulasi lanjutan"
-                            if jawaban == "tidak"
-                            else ""
-                        ),
-                        catatan=catatan,
-                    )
+                catatan = (
+                    "Anak perlu perhatian pada fokus dan instruksi berulang."
+                    if ada_catatan
+                    else "Anak mengikuti observasi dengan baik."
                 )
+
+                for idx, pertanyaan in enumerate(kpsp_pertanyaan):
+                    jawaban = "tidak" if ada_catatan and idx in [2, 4] else "ya"
+
+                    db.session.add(
+                        KPSPJawaban(
+                            pendaftaran_id=pendaftaran.id,
+                            pertanyaan_id=pertanyaan.id,
+                            snapshot_usia_bulan=pertanyaan.usia_bulan,
+                            snapshot_aspek_perkembangan=pertanyaan.aspek_perkembangan,
+                            snapshot_kemampuan_anak=pertanyaan.kemampuan_anak,
+                            snapshot_urutan=pertanyaan.urutan,
+                            jawaban=jawaban,
+                            keterangan=(
+                                "Perlu stimulasi lanjutan"
+                                if jawaban == "tidak"
+                                else ""
+                            ),
+                            catatan=catatan,
+                        )
+                    )
 
             counter += 1
 

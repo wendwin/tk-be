@@ -66,9 +66,23 @@ def store():
             code=201
         )
 
+    except ValueError as e:
+        db.session.rollback()
+
+        return error_response(
+            message=str(e),
+            code=422
+        )
+
     except Exception as e:
         db.session.rollback()
-        return error_response(message=str(e), code=500)
+
+        current_app.logger.exception(e)
+
+        return error_response(
+            message="Terjadi kesalahan pada server",
+            code=500
+        )
     
 # get by id
 @bp_pendaftaran.route('/<int:id>', methods=['GET'])

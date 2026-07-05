@@ -90,8 +90,11 @@ def create_siswa_from_pendaftaran(pendaftaran_id):
 
     nisn = None
 
-    if pendaftaran.peserta and pendaftaran.peserta.informasi:
-        nisn = pendaftaran.peserta.informasi.nisn
+    if (
+        pendaftaran.peserta
+        and pendaftaran.peserta.informasi
+    ):
+        nisn = pendaftaran.peserta.informasi.nisn or None
 
     siswa = Siswa(
         peserta_id=pendaftaran.peserta_id,
@@ -116,7 +119,20 @@ def update_siswa(id, data):
         raise ValueError("Tidak ada data yang diupdate")
 
     if "nisn" in data:
-        siswa.nisn = data["nisn"]
+        nisn = data["nisn"].strip() if data["nisn"] else None
+
+        if nisn:
+            existing = Siswa.query.filter(
+                Siswa.nisn == nisn,
+                Siswa.id != siswa.id
+            ).first()
+
+            if existing:
+                raise ValueError(
+                    "NISN sudah digunakan siswa lain"
+                )
+
+        siswa.nisn = nisn
 
     if "status" in data:
         siswa.status = data["status"]

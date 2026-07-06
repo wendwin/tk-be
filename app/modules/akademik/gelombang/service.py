@@ -25,6 +25,22 @@ def get_gelombang_by_id(id):
 
     return gelombang
 
+def get_active_gelombang():
+    tahun_ajaran = (
+        TahunAjaran.query
+        .filter_by(is_active=True)
+        .first()
+    )
+
+    if not tahun_ajaran:
+        raise ValueError("Tidak ada tahun ajaran aktif")
+
+    return (
+        Gelombang.query
+        .filter_by(tahun_ajaran_id=tahun_ajaran.id)
+        .order_by(Gelombang.tanggal_mulai.asc())
+        .all()
+    )
 
 def create_gelombang(data):
     tahun_ajaran = TahunAjaran.query.get(data["tahun_ajaran_id"])

@@ -5,6 +5,7 @@ from app.utils.responses import success_response, error_response
 from app.utils.decorators import role_required
 from app.modules.akademik.gelombang.schema import GelombangSchema, GelombangUpdateSchema
 from app.modules.akademik.gelombang.service import (
+    get_active_gelombang,
     get_gelombang_by_tahun_ajaran,
     get_gelombang_by_id,
     create_gelombang,
@@ -114,6 +115,22 @@ def destroy(id):
 
     except ValueError as e:
         return error_response(str(e), 422)
+
+    except Exception as e:
+        return error_response(str(e), 500)
+    
+@bp_gelombang.route("/active", methods=["GET"])
+def active():
+    try:
+        data = get_active_gelombang()
+
+        return success_response(
+            message="Berhasil mengambil gelombang aktif",
+            data=GelombangSchema(many=True).dump(data),
+        )
+
+    except ValueError as e:
+        return error_response(str(e), 404)
 
     except Exception as e:
         return error_response(str(e), 500)

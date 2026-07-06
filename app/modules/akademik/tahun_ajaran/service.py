@@ -9,6 +9,14 @@ def get_all_tahun_ajaran():
         .all()
     )
 
+def get_active_tahun_ajaran():
+    tahun_ajaran = TahunAjaran.query.filter_by(is_active=True).first()
+
+    if not tahun_ajaran:
+        raise ValueError("Tidak ada tahun ajaran yang aktif")
+
+    return tahun_ajaran
+
 
 def get_tahun_ajaran_by_id(id):
     tahun_ajaran = db.session.get(TahunAjaran, id)

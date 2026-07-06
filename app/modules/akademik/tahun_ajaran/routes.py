@@ -5,7 +5,7 @@ from app.utils.decorators import role_required
 
 from app.modules.akademik.tahun_ajaran.schema import TahunAjaranSchema, CreateTahunAjaranSchema, UpdateTahunAjaranSchema
 
-from app.modules.akademik.tahun_ajaran.service import get_all_tahun_ajaran,get_tahun_ajaran_by_id,create_tahun_ajaran,update_tahun_ajaran,delete_tahun_ajaran
+from app.modules.akademik.tahun_ajaran.service import get_all_tahun_ajaran, get_active_tahun_ajaran, get_tahun_ajaran_by_id, create_tahun_ajaran, update_tahun_ajaran, delete_tahun_ajaran
 
 
 bp_tahun_ajaran = Blueprint("tahun_ajaran", __name__)
@@ -94,6 +94,22 @@ def destroy(id):
 
         return success_response(
             message="Tahun ajaran berhasil dihapus"
+        )
+
+    except ValueError as e:
+        return error_response(str(e), 404)
+
+    except Exception as e:
+        return error_response(str(e), 500)
+
+@bp_tahun_ajaran.route("/active", methods=["GET"])
+def active():
+    try:
+        tahun_ajaran = get_active_tahun_ajaran()
+
+        return success_response(
+            message="Berhasil mengambil tahun ajaran aktif",
+            data=TahunAjaranSchema().dump(tahun_ajaran)
         )
 
     except ValueError as e:

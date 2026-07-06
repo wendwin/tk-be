@@ -7,22 +7,22 @@ def seed_gelombang():
     data = [
         {
             "nama": "Gelombang 1",
-            "tanggal_mulai": date(2026, 1, 1),
-            "tanggal_selesai": date(2026, 2, 10),
-            "tahun_ajaran_id": 1
+            "tanggal_mulai": date(2025, 10, 1),
+            "tanggal_selesai": date(2025, 12, 31),
+            "tahun_ajaran_id": 1,
         },
         {
             "nama": "Gelombang 2",
-            "tanggal_mulai": date(2026, 2, 11),
-            "tanggal_selesai": date(2026, 4, 30),
-            "tahun_ajaran_id": 1
+            "tanggal_mulai": date(2026, 1, 1),
+            "tanggal_selesai": date(2026, 3, 31),
+            "tahun_ajaran_id": 1,
         },
         {
             "nama": "Gelombang 3",
-            "tanggal_mulai": date(2026, 5, 1),
-            "tanggal_selesai": date(2026, 7, 30),
-            "tahun_ajaran_id": 1
-        }
+            "tanggal_mulai": date(2026, 4, 1),
+            "tanggal_selesai": date(2026, 6, 30),
+            "tahun_ajaran_id": 1,
+        },
     ]
 
     for item in data:

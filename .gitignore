@@ -4,13 +4,13 @@ __pycache__/
 *.pyd
 
 venv/
-.env/
 
 instance/
 .webassets-cache
 
 .env
 .env.*
+!.env.example
 
 logs/
 *.log
